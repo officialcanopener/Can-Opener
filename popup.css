@@ -1378,7 +1378,7 @@ h1#title-text.greyed-out {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease; /* Faster transition for snappier feel */
   white-space: nowrap;
   min-width: 70px;
   text-align: center;
@@ -1387,6 +1387,7 @@ h1#title-text.greyed-out {
 .tip-dev-button:hover {
   background-color: #444;
   transform: scale(1.05);
+  filter: brightness(1.2);
 }
 
 .tip-dev-button:active {
@@ -1402,12 +1403,13 @@ h1#title-text.greyed-out {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease; /* Faster transition for snappier feel */
 }
 
 .website-button:hover {
   background-color: #444;
   transform: scale(1.05);
+  filter: brightness(1.2);
 }
 
 .website-button:active {
