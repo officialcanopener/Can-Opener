@@ -1,0 +1,1356 @@
+/* General styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Animation speed variables (default to medium) */
+  --animation-speed: 3s;
+  --animation-delay-factor: 0.05s;
+  --animation-restart: 0s; /* New variable for restarting animations */
+}
+
+html, body {
+  width: 400px;
+  min-width: 400px;
+  min-height: 600px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent body scrolling */
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+  opacity: 1;
+  height: 100%;
+  position: fixed; /* Prevent any scrolling */
+  width: 100%;
+}
+
+.container {
+  padding: 15px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Ensure container doesn't scroll */
+}
+
+/* Status Banner */
+.status-banner {
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.status-banner.ready {
+  background-color: rgba(0, 255, 0, 0.1);
+  color: #00cc00;
+  border-color: #00cc00;
+}
+
+.status-banner.refresh-required {
+  background-color: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  border-color: #ffa500;
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+}
+
+.status-banner.refresh-required:hover {
+  filter: brightness(1.2);
+  transform: scale(1.02);
+}
+
+.status-banner.refresh-required:active {
+  transform: scale(0.98);
+}
+
+.status-banner.inactive {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #ff0000;
+  border-color: #ff0000;
+}
+
+/* Disable hover effects during refreshing */
+.status-banner.refreshing {
+  filter: none !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+/* Header styles */
+header {
+  display: flex;
+  justify-content: space-between; /* Changed from center to space-between */
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333;
+  position: relative; /* Added for positioning the tip button */
+}
+
+.logo {
+  display: none;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  height: 22px; /* Set fixed height to prevent shifting */
+  transition: color 0.3s;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Add vertical centering */
+}
+
+/* Style for individual characters in the title when in wave mode */
+h1.wave-text {
+  flex-wrap: nowrap;
+}
+
+/* Style for individual characters in title */
+.chroma-char, .static-char {
+  display: inline-block;
+}
+
+/* Ensure space character is properly rendered */
+.space-char {
+  width: 0.4em; /* Set explicit width for space character */
+  display: inline-block;
+}
+
+/* Settings section */
+.settings-section {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #333;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 5px 0;
+}
+
+.setting-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-label {
+  margin-left: 8px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* Status indicator for extension state (ON/OFF) and effect state (WAVE/STATIC) */
+.status-indicator {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0 8px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  min-width: 58px;
+  text-align: center;
+}
+
+/* Make status indicators clickable */
+.status-indicator.clickable,
+.status-indicator.clickable * {
+  cursor: pointer !important;
+  user-select: none;
+  pointer-events: auto !important;
+}
+
+/* Target both status indicators to ensure consistent styling */
+#status-indicator.clickable,
+#effect-indicator.clickable {
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+}
+
+/* Override potentially problematic properties on both indicators */
+#effect-indicator, 
+#status-indicator {
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Remove any hover effects directly on indicators since they now use wrappers */
+#status-indicator.clickable:hover,
+#effect-indicator.clickable:hover {
+  filter: none;
+  transform: none;
+}
+
+/* Clear any active effects on indicators */
+#status-indicator.clickable:active,
+#effect-indicator.clickable:active {
+  transform: none;
+}
+
+/* Override any potential text selection behavior */
+#effect-indicator {
+  cursor: pointer !important;
+}
+
+#effect-indicator.wave-active {
+  cursor: pointer !important;
+}
+
+#effect-indicator.static-active {
+  cursor: pointer !important;
+}
+
+#effect-indicator:hover {
+  cursor: pointer !important;
+}
+
+/* Override for all text states */
+#effect-indicator,
+#effect-indicator * {
+  cursor: pointer !important;
+  text-align: center;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  pointer-events: auto !important;
+}
+
+/* Force hardware acceleration and prevent text selection */
+.status-indicator.wave-active,
+.status-indicator.static-active {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* Active state (ON) */
+.status-indicator.active {
+  background-color: rgba(0, 204, 0, 0.2);
+  color: #00cc00;
+  border-color: #00cc00;
+}
+
+/* Inactive state (OFF) */
+.status-indicator.inactive {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #ff0000;
+  border-color: #ff0000;
+}
+
+/* Wave effect state */
+.status-indicator.wave-active {
+  animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  border-color: #ff00ff;
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, color, border-color;
+}
+
+/* Static effect state - color will be set in JS */
+.status-indicator.static-active {
+  background-color: rgba(140, 0, 255, 0.2);
+  color: #8C00FF;
+  border-color: #8C00FF;
+}
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #555;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+.slider.round {
+  border-radius: 22px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Trading site selection */
+.site-selection-row {
+  margin-top: 20px;
+}
+
+.site-buttons-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  flex-wrap: nowrap;
+  padding: 0 5px;
+}
+
+.site-button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin: 0 2px;
+  padding-top: 20px; /* Space for the label above */
+}
+
+.site-name-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  height: 20px;
+}
+
+.site-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default !important;
+  pointer-events: none;
+  user-select: none;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.site-button:hover {
+  background-color: #2a2a2a;
+  transform: none;
+  filter: none;
+}
+
+.site-button.active {
+  border-color: var(--active-color, #00ff00);
+  background-color: #333;
+  animation: syncedChromaWaveBorder var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, border-color;
+}
+
+.site-button-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* Create a single synchronized animation for all wave effects */
+@keyframes syncedChromaWave {
+  0% { color: #ff0000; } /* Red */
+  8% { color: #ff4000; } /* Red-Orange */
+  16% { color: #ff8000; } /* Orange */
+  24% { color: #ffff00; } /* Yellow */
+  32% { color: #80ff00; } /* Yellow-Green */
+  40% { color: #00ff00; } /* Green */
+  48% { color: #00ff80; } /* Green-Cyan */
+  56% { color: #00ffff; } /* Cyan */
+  64% { color: #0080ff; } /* Light Blue */
+  72% { color: #0000ff; } /* Blue */
+  80% { color: #8000ff; } /* Indigo */
+  88% { color: #ff00ff; } /* Magenta */
+  96% { color: #ff0080; } /* Pink */
+  100% { color: #ff0000; } /* Back to Red */
+}
+
+/* Background version with the same timing */
+@keyframes syncedChromaWaveBg {
+  0% { background-color: rgba(255, 0, 0, 0.3); color: #ff0000; } /* Red */
+  8% { background-color: rgba(255, 64, 0, 0.3); color: #ff4000; } /* Red-Orange */
+  16% { background-color: rgba(255, 128, 0, 0.3); color: #ff8000; } /* Orange */
+  24% { background-color: rgba(255, 255, 0, 0.3); color: #ffff00; } /* Yellow */
+  32% { background-color: rgba(128, 255, 0, 0.3); color: #80ff00; } /* Yellow-Green */
+  40% { background-color: rgba(0, 255, 0, 0.3); color: #00ff00; } /* Green */
+  48% { background-color: rgba(0, 255, 128, 0.3); color: #00ff80; } /* Green-Cyan */
+  56% { background-color: rgba(0, 255, 255, 0.3); color: #00ffff; } /* Cyan */
+  64% { background-color: rgba(0, 128, 255, 0.3); color: #0080ff; } /* Light Blue */
+  72% { background-color: rgba(0, 0, 255, 0.3); color: #0000ff; } /* Blue */
+  80% { background-color: rgba(128, 0, 255, 0.3); color: #8000ff; } /* Indigo */
+  88% { background-color: rgba(255, 0, 255, 0.3); color: #ff00ff; } /* Magenta */
+  96% { background-color: rgba(255, 0, 128, 0.3); color: #ff0080; } /* Pink */
+  100% { background-color: rgba(255, 0, 0, 0.3); color: #ff0000; } /* Back to Red */
+}
+
+/* Border version with the same timing */
+@keyframes syncedChromaWaveBorder {
+  0% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; } /* Red */
+  8% { background-color: rgba(255, 64, 0, 0.3); border-color: #ff4000; } /* Red-Orange */
+  16% { background-color: rgba(255, 128, 0, 0.3); border-color: #ff8000; } /* Orange */
+  24% { background-color: rgba(255, 255, 0, 0.3); border-color: #ffff00; } /* Yellow */
+  32% { background-color: rgba(128, 255, 0, 0.3); border-color: #80ff00; } /* Yellow-Green */
+  40% { background-color: rgba(0, 255, 0, 0.3); border-color: #00ff00; } /* Green */
+  48% { background-color: rgba(0, 255, 128, 0.3); border-color: #00ff80; } /* Green-Cyan */
+  56% { background-color: rgba(0, 255, 255, 0.3); border-color: #00ffff; } /* Cyan */
+  64% { background-color: rgba(0, 128, 255, 0.3); border-color: #0080ff; } /* Light Blue */
+  72% { background-color: rgba(0, 0, 255, 0.3); border-color: #0000ff; } /* Blue */
+  80% { background-color: rgba(128, 0, 255, 0.3); border-color: #8000ff; } /* Indigo */
+  88% { background-color: rgba(255, 0, 255, 0.3); border-color: #ff00ff; } /* Magenta */
+  96% { background-color: rgba(255, 0, 128, 0.3); border-color: #ff0080; } /* Pink */
+  100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; } /* Back to Red */
+}
+
+/* Update characters to use the synced animation but without a delay (no wave effect) */
+.chroma-char {
+  display: inline-block;
+  animation: syncedChromaWave var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart); /* Base delay for sync */
+  will-change: color;
+}
+
+/* Staggered animation for text characters (wave effect) */
+.wave-text .chroma-char {
+  animation-delay: calc(var(--animation-restart) + var(--char-index, 0) * var(--animation-delay-factor));
+}
+
+/* Update active site buttons to use the synced animation */
+.site-button.active {
+  border-color: var(--active-color, #00ff00);
+  background-color: #333;
+  animation: syncedChromaWaveBorder var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, border-color;
+}
+
+/* Remove old dropdown styles */
+.trading-site-wrapper,
+.selected-site-container,
+.selected-site-content,
+.dropdown-arrow,
+.site-options,
+.site-option {
+  /* These styles are now replaced */
+}
+
+/* Effect Type Styles */
+.effect-type-static {
+  font-weight: 500;
+}
+
+/* Ensure consistency in font weight */
+.chroma-wave {
+  font-weight: 500;
+}
+
+/* Color picker */
+.color-picker-container {
+  display: flex;
+  align-items: center;
+}
+
+input[type="color"] {
+  -webkit-appearance: none;
+  border: none;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  background: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+/* Recent addresses section */
+.recent-section {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 270px); /* Give it more space */
+}
+
+h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #ffffff;
+}
+
+#recent-addresses-list {
+  flex-grow: 1;
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Hide horizontal scroll */
+  padding-right: 5px; /* Space for scrollbar */
+  max-height: 320px; /* Taller to show more addresses */
+  padding-bottom: 15px; /* Add padding at the bottom to prevent cut-off */
+}
+
+.address-item {
+  padding: 10px;
+  margin-bottom: 10px; /* Slightly more space between items */
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  position: relative;
+  cursor: pointer !important;
+}
+
+.address-item:hover {
+  filter: brightness(1.2);
+  transform: scale(1.02);
+}
+
+.address-item:active {
+  transform: scale(0.98);
+}
+
+.address-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Rainbow effect for address links - REMOVED and replaced with character-by-character animation */
+.address-text {
+  display: inline-block;
+}
+
+/* The old @keyframes chromaWave has been replaced with syncedChromaWave for synchronized animation */
+
+.chroma-char {
+  display: inline-block;
+  animation: syncedChromaWave var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart); /* Base delay for sync */
+  will-change: color;
+}
+
+.chroma-wave {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.page-title {
+  font-size: 12px;
+  color: #888;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: #777;
+  margin-top: 6px;
+}
+
+.loading {
+  text-align: center;
+  color: #888;
+  padding: 20px 0;
+}
+
+.empty-state {
+  text-align: center;
+  color: #888;
+  padding: 20px 0;
+}
+
+/* Removed footer styles */
+
+/* Token styles for recent addresses */
+.token-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.token-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #3a3a3a;
+  object-fit: cover;
+}
+
+.token-logo-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #3a3a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.token-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.token-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.token-symbol {
+  font-size: 12px;
+  color: #aaaaaa;
+  margin-top: 2px;
+}
+
+.address-hint {
+  font-size: 11px;
+  color: #888888;
+  margin-top: 3px;
+  font-family: monospace;
+}
+
+/* Button wrapper to ensure cursor works */
+.button-wrapper {
+  display: inline-block;
+  cursor: pointer !important;
+}
+
+.button-wrapper:hover {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+.button-wrapper:active {
+  transform: scale(0.95);
+}
+
+/* Site buttons hover/animations using button-wrapper */
+.site-button-group .button-wrapper {
+  display: inline-block;
+  cursor: pointer !important;
+  position: relative;
+}
+
+.site-button-group .button-wrapper:hover {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+.site-button-group .button-wrapper:active {
+  transform: scale(0.95);
+}
+
+/* Override site button hover effects since they're now handled by the wrapper */
+.site-button {
+  cursor: default !important;
+  pointer-events: none;
+  user-select: none;
+}
+
+.site-button:hover {
+  background-color: #2a2a2a;
+  transform: none;
+  filter: none;
+}
+
+/* Button wrapper styles for history items */
+.address-item {
+  position: relative;
+  cursor: pointer !important;
+}
+
+.address-item:hover {
+  filter: brightness(1.2);
+  transform: scale(1.02);
+}
+
+.address-item:active {
+  transform: scale(0.98);
+}
+
+.address-link {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Animation speed selector */
+.speed-selector {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.speed-option {
+  padding: 3px 6px;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #2a2a2a;
+  cursor: pointer !important;
+  transition: all 0.15s ease; /* Faster transition for snappier feel */
+  width: 24px;
+  text-align: center;
+  border: 2px solid transparent;
+  user-select: none;
+  pointer-events: none; /* Disable pointer events since the wrapper handles this */
+}
+
+/* Remove hover/active effects from the speed-option itself */
+.speed-option:hover {
+  filter: none;
+  transform: none;
+}
+
+.speed-option:active {
+  transform: none;
+}
+
+/* Update active speed option to remove hover/active effects */
+.speed-option.active {
+  background-color: #2a2a2a;
+  animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  border: 2px solid #ff00ff;
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, color, border-color;
+}
+
+/* Remove hover/active effects from active speed option */
+.speed-option.active:hover {
+  filter: none;
+  transform: none;
+}
+
+.speed-option.active:active {
+  transform: none;
+}
+
+/* Helper class for animation restart */
+.force-animation-restart * {
+  animation-name: none !important; /* Temporarily disable all animations */
+}
+
+/* Border and text version with the same timing */
+@keyframes syncedChromaWaveBorderText {
+  0% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; color: #ff0000; } /* Red */
+  8% { background-color: rgba(255, 64, 0, 0.3); border-color: #ff4000; color: #ff4000; } /* Red-Orange */
+  16% { background-color: rgba(255, 128, 0, 0.3); border-color: #ff8000; color: #ff8000; } /* Orange */
+  24% { background-color: rgba(255, 255, 0, 0.3); border-color: #ffff00; color: #ffff00; } /* Yellow */
+  32% { background-color: rgba(128, 255, 0, 0.3); border-color: #80ff00; color: #80ff00; } /* Yellow-Green */
+  40% { background-color: rgba(0, 255, 0, 0.3); border-color: #00ff00; color: #00ff00; } /* Green */
+  48% { background-color: rgba(0, 255, 128, 0.3); border-color: #00ff80; color: #00ff80; } /* Green-Cyan */
+  56% { background-color: rgba(0, 255, 255, 0.3); border-color: #00ffff; color: #00ffff; } /* Cyan */
+  64% { background-color: rgba(0, 128, 255, 0.3); border-color: #0080ff; color: #0080ff; } /* Light Blue */
+  72% { background-color: rgba(0, 0, 255, 0.3); border-color: #0000ff; color: #0000ff; } /* Blue */
+  80% { background-color: rgba(128, 0, 255, 0.3); border-color: #8000ff; color: #8000ff; } /* Indigo */
+  88% { background-color: rgba(255, 0, 255, 0.3); border-color: #ff00ff; color: #ff00ff; } /* Magenta */
+  96% { background-color: rgba(255, 0, 128, 0.3); border-color: #ff0080; color: #ff0080; } /* Pink */
+  100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; color: #ff0000; } /* Back to Red */
+}
+
+/* Prevent text selection throughout the popup */
+body, 
+.container, 
+h1, h2, h3, 
+.status-banner,
+.status-indicator,
+.speed-option,
+.setting-label,
+.toggle-label,
+.site-name-label,
+.address-item,
+.address-link,
+.address-text,
+.page-title,
+.timestamp,
+.token-name,
+.token-symbol {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  cursor: default;
+}
+
+/* Ensure clickable elements still show the pointer cursor */
+[class*="clickable"],
+.button-wrapper,
+.status-banner.refresh-required,
+.address-item,
+.speed-option,
+input[type="color"] {
+  cursor: pointer !important;
+}
+
+/* Greyed out state for when extension is inactive */
+.greyed-out {
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+  filter: grayscale(70%) !important;
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+/* Ensure the OFF button and inactive banner remain clickable */
+.status-indicator.inactive,
+.status-banner.inactive,
+#status-indicator.inactive {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  filter: none !important;
+}
+
+/* Explicitly target effect indicator and title text */
+#effect-indicator.greyed-out,
+#title-text.greyed-out {
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Explicitly target effect indicator with very high specificity */
+#effect-indicator.greyed-out,
+#effect-indicator.status-indicator.greyed-out,
+.status-indicator.wave-active.greyed-out,
+.status-indicator.static-active.greyed-out {
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+  pointer-events: none !important;
+}
+
+/* Explicitly targeting the title with high specificity */
+#title-text.greyed-out,
+h1#title-text.greyed-out {
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+  pointer-events: none !important;
+}
+
+/* Add !important to animation styles to ensure they're overridden when greyed out */
+.status-indicator.wave-active.greyed-out,
+#effect-indicator.wave-active.greyed-out {
+  animation: none !important;
+  background-color: rgba(128, 128, 128, 0.2) !important;
+  color: #888 !important;
+  border-color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Ensure static chars are properly greyed out */
+.static-char.greyed-out,
+.greyed-out .static-char,
+#title-text.greyed-out .static-char {
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+  color: #888 !important;
+}
+
+/* Ensure chroma chars are properly greyed out */
+.chroma-char.greyed-out,
+.greyed-out .chroma-char,
+#title-text.greyed-out .chroma-char {
+  animation: none !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+  color: #888 !important;
+}
+
+/* Ensure site buttons are properly greyed out */
+.site-button.active.greyed-out,
+.greyed-out .site-button.active {
+  animation: none !important;
+  background-color: rgba(128, 128, 128, 0.2) !important;
+  border-color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Ensure speed options are properly greyed out */
+.speed-option.active.greyed-out,
+.greyed-out .speed-option.active {
+  animation: none !important;
+  background-color: rgba(128, 128, 128, 0.2) !important;
+  border-color: #888 !important;
+  color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Ensure history section characters are properly greyed out */
+#recent-addresses-list .chroma-char.greyed-out,
+.greyed-out #recent-addresses-list .chroma-char,
+#recent-addresses-list .greyed-out .chroma-char {
+  animation: none !important;
+  color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Ensure token names are properly greyed out */
+.token-name.chroma-wave.greyed-out .chroma-char,
+.greyed-out .token-name.chroma-wave .chroma-char,
+.token-name.chroma-wave .chroma-char.greyed-out {
+  animation: none !important;
+  color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Special handling for static colored elements when greyed out */
+.token-name.greyed-out:not(.chroma-wave),
+.greyed-out .token-name:not(.chroma-wave) {
+  color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
+}
+
+/* Tip button styles */
+.tip-button {
+  background-color: rgba(171, 159, 242, 0.2);
+  color: #AB9FF2;
+  border: 2px solid #AB9FF2;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto; /* Push to the right */
+}
+
+.tip-button:hover {
+  background-color: rgba(171, 159, 242, 0.3);
+  transform: scale(1.05);
+}
+
+.tip-button:active {
+  transform: scale(0.98);
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  overflow: auto;
+}
+
+.modal-content {
+  background-color: #1e1e1e;
+  margin: 10% auto;
+  width: 90%;
+  max-width: 370px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+  animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+  from {opacity: 0; transform: scale(0.95);}
+  to {opacity: 1; transform: scale(1);}
+}
+
+.modal-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.close-modal {
+  color: #777;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-modal:hover {
+  color: #fff;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #333;
+  text-align: center;
+}
+
+/* Tip modal specific styles */
+.tip-intro {
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #ddd;
+}
+
+.tip-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tip-option {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #444;
+}
+
+.tip-option h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.security-note {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.amount-selector {
+  margin-bottom: 15px;
+}
+
+.amount-selector p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.amount-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.amount-btn {
+  background-color: #333;
+  border: 1px solid #555;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.amount-btn:hover {
+  background-color: #444;
+}
+
+.amount-btn.selected {
+  background-color: rgba(171, 159, 242, 0.2);
+  border-color: #AB9FF2;
+  color: #AB9FF2;
+}
+
+.custom-amount-container {
+  margin-top: 10px;
+}
+
+#custom-amount {
+  background-color: #333;
+  border: 1px solid #555;
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  width: 100%;
+}
+
+.phantom-actions {
+  margin-top: 15px;
+}
+
+.primary-button {
+  background-color: #AB9FF2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.primary-button:hover {
+  background-color: #bdb5f5;
+}
+
+.primary-button:active {
+  transform: scale(0.98);
+}
+
+.wallet-status {
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: 20px;
+  line-height: 1.4;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.divider:before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #444;
+}
+
+.divider span {
+  position: relative;
+  background-color: #2a2a2a;
+  padding: 0 10px;
+  color: #999;
+  font-size: 13px;
+}
+
+.address-container {
+  display: flex;
+  align-items: center;
+  background-color: #333;
+  border-radius: 6px;
+  padding: 10px;
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.wallet-address {
+  font-family: monospace;
+  font-size: 12px;
+  color: #fff;
+  word-break: break-all;
+  margin-right: 10px;
+  flex: 1;
+}
+
+.secondary-button {
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.secondary-button:hover {
+  background-color: #555;
+}
+
+.copy-confirmation {
+  position: absolute;
+  right: 10px;
+  top: -25px;
+  background-color: rgba(0, 204, 0, 0.2);
+  color: #00cc00;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: none;
+}
+
+.qr-code {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.qr-code img {
+  width: 150px;
+  height: 150px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.thank-you {
+  font-size: 14px;
+  color: #aaa;
+}
+
+/* Transaction status modal specific styles */
+.transaction-modal .modal-content {
+  max-width: 320px;
+}
+
+#transaction-status {
+  text-align: center;
+  margin: 15px 0;
+  font-size: 16px;
+}
+
+#transaction-details {
+  font-family: monospace;
+  word-break: break-all;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-top: 15px;
+}
+
+/* Phantom instructions */
+.phantom-instructions {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: rgba(171, 159, 242, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(171, 159, 242, 0.3);
+}
+
+.phantom-instructions h4 {
+  font-size: 14px;
+  margin: 0 0 8px 0;
+  color: #AB9FF2;
+}
+
+.phantom-instructions ol {
+  margin: 0;
+  padding-left: 25px;
+}
+
+.phantom-instructions li {
+  font-size: 13px;
+  margin-bottom: 5px;
+  line-height: 1.4;
+  color: #cccccc;
+} 

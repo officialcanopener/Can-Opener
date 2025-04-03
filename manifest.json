@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Can Opener",
+  "version": "1.0",
+  "description": "Identifies Solana meme coin contract addresses and provides quick links to view them on multiple trading sites",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": [
+    "https://api.jup.ag/*",
+    "https://phantom.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "icons": {
+    "48": "can-opener-logo-no-background.png",
+    "128": "can-opener-logo-no-background.png"
+  },
+  "action": {
+    "default_icon": "can-opener-logo-no-background.png",
+    "default_title": "Can Opener",
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "styles.css",
+        "axiom-logo.png",
+        "bullx-logo.png",
+        "photon-logo.png",
+        "gmgn-logo.png",
+        "dexscreener-logo.png",
+        "birdeye-logo.png",
+        "phantom-icon.png",
+        "qr-code.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

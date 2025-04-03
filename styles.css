@@ -1,0 +1,74 @@
+.site-link {
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.site-link:hover {
+  text-decoration: underline;
+}
+
+.site-icon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-right: 3px;
+  margin-top: 1px;
+  position: relative;
+  top: -1px;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+/* Chroma wave effect */
+@keyframes chromaWave {
+  0% { color: #ff0000; } /* Red */
+  8% { color: #ff4000; } /* Red-Orange */
+  16% { color: #ff8000; } /* Orange */
+  24% { color: #ffff00; } /* Yellow */
+  32% { color: #80ff00; } /* Yellow-Green */
+  40% { color: #00ff00; } /* Green */
+  48% { color: #00ff80; } /* Green-Cyan */
+  56% { color: #00ffff; } /* Cyan */
+  64% { color: #0080ff; } /* Light Blue */
+  72% { color: #0000ff; } /* Blue */
+  80% { color: #8000ff; } /* Indigo */
+  88% { color: #ff00ff; } /* Magenta */
+  96% { color: #ff0080; } /* Pink */
+  100% { color: #ff0000; } /* Back to Red */
+}
+
+/* Import animation speed variables from popup */
+:root {
+  --animation-speed: 3s;
+  --animation-delay-factor: 0.05s;
+  --animation-restart: 0s; /* Added for animation synchronization */
+}
+
+.chroma-char {
+  display: inline-block;
+  animation: chromaWave var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart); /* Base delay for sync */
+  will-change: color;
+}
+
+/* Add wave-text class for staggered animations */
+.wave-text .chroma-char {
+  animation-delay: calc(var(--animation-restart) + var(--char-index, 0) * var(--animation-delay-factor));
+}
+
+/* Ensure the animation is smooth by using GPU acceleration */
+.chroma-wave {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Helper class for animation restart */
+.force-animation-restart * {
+  animation-name: none !important; /* Temporarily disable all animations */
+}
