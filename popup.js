@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const tipDevButton = document.getElementById('tip-dev-button');
   if (tipDevButton) {
     tipDevButton.addEventListener('click', function() {
-      // Use only query parameter to prevent automatic browser scrolling to the hash
-      window.open('https://officialcanopener.github.io/Can-Opener/?highlight=support&manual=true', '_blank');
+      // Use a clean URL with just the highlight parameter
+      window.open('https://officialcanopener.github.io/Can-Opener/?highlight=support', '_blank');
     });
   }
   
