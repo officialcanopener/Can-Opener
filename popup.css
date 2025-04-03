@@ -419,6 +419,7 @@ input:checked + .slider:before {
   width: 32px;
   height: 32px;
   object-fit: contain;
+  transition: transform 0.2s ease;
 }
 
 /* Create a single synchronized animation for all wave effects */
@@ -722,11 +723,15 @@ h2 {
   display: inline-block;
   cursor: pointer !important;
   position: relative;
+  transition: all 0.2s ease;
 }
 
 .site-button-group .button-wrapper:hover {
-  filter: brightness(1.2);
-  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.site-button-group .button-wrapper:hover .site-button-logo {
+  transform: scale(1.15);
 }
 
 .site-button-group .button-wrapper:active {
@@ -1358,6 +1363,33 @@ h1#title-text.greyed-out {
 .header-buttons {
   display: flex;
   gap: 8px;
+}
+
+.left-buttons {
+  margin-right: 8px;
+}
+
+.tip-dev-button {
+  padding: 6px 12px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: center;
+}
+
+.tip-dev-button:hover {
+  background-color: #444;
+}
+
+.tip-dev-button:active {
+  transform: scale(0.95);
 }
 
 .website-button {
