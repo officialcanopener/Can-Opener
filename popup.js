@@ -1610,7 +1610,7 @@ function initTipFeature() {
       
       // Create URL with parameters for the intermediary web page
       // This web page will handle the interaction with Phantom
-      const bridgeUrl = `https://can-opener-wallet-bridge.vercel.app/?` + 
+      const bridgeUrl = `https://officialcanopener.github.io/Can-Opener/bridge-page/?` + 
                        `address=${encodeURIComponent(RECIPIENT_ADDRESS)}` + 
                        `&amount=${encodeURIComponent(formattedAmount)}`;
       
