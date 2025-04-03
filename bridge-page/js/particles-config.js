@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: 'circle'
             },
             opacity: {
-                value: 0.15,
+                value: 0.2,
                 random: false,
                 anim: {
                     enable: false
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 enable: true,
                 distance: 150,
                 color: '#ffffff',
-                opacity: 0.1,
+                opacity: 0.15,
                 width: 1
             },
             move: {
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 grab: {
                     distance: 140,
                     line_linked: {
-                        opacity: 0.3
+                        opacity: 0.4
                     }
                 },
                 push: {
