@@ -14,7 +14,9 @@
     
     <header>
       <h1 id="title-text">Can Opener</h1>
-      <button id="tip-button" class="tip-button">Support</button>
+      <div class="header-buttons">
+        <button id="website-button" class="website-button">Website</button>
+      </div>
     </header>
     
     <div class="settings-section">
@@ -118,95 +120,6 @@
       <h2>History</h2>
       <div id="recent-addresses-list">
         <div class="loading">Loading recent addresses...</div>
-      </div>
-    </div>
-    
-    <!-- Tip Modal -->
-    <div id="tip-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Support the Developer</h2>
-          <span class="close-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-          <p class="tip-intro">
-            If you find Can Opener useful, consider sending a small tip to support continued development and maintenance!
-          </p>
-          
-          <div class="tip-options">
-            <div class="tip-option">
-              <h3><img src="phantom-icon.png" class="wallet-icon" alt="Phantom"> Using Phantom Wallet</h3>
-              <p class="security-note">Send SOL securely through our dedicated payment page</p>
-              
-              <div class="amount-selector">
-                <p>Select Amount:</p>
-                <div class="amount-buttons">
-                  <button class="amount-btn" data-amount="0.1">0.1 SOL</button>
-                  <button class="amount-btn" data-amount="0.5">0.5 SOL</button>
-                  <button class="amount-btn" data-amount="1">1 SOL</button>
-                  <button class="amount-btn custom">Custom</button>
-                </div>
-                <div class="custom-amount-container" style="display: none;">
-                  <input type="number" id="custom-amount" min="0.01" step="0.01" placeholder="Enter SOL amount">
-                </div>
-              </div>
-              
-              <div class="phantom-actions">
-                <button id="open-phantom-button" class="primary-button">Connect to Phantom</button>
-                <div id="phantom-status" class="wallet-status">Opens a secure payment page in your browser</div>
-              </div>
-              
-              <div class="phantom-instructions">
-                <h4>How it works:</h4>
-                <ol>
-                  <li>Click "Connect to Phantom" above</li>
-                  <li>A secure payment page will open in a new tab</li>
-                  <li>The page will directly connect to your Phantom wallet</li>
-                  <li>Review and confirm the transaction in Phantom</li>
-                  <li>Return to Can Opener when complete</li>
-                </ol>
-              </div>
-            </div>
-            
-            <div class="divider">
-              <span>OR</span>
-            </div>
-            
-            <div class="tip-option">
-              <h3>Manual Copy</h3>
-              <p class="security-note">Copy the address and send SOL manually from your wallet app</p>
-              
-              <div class="address-container">
-                <p class="wallet-address">84U4Z1E7iYdXjkhBUWgDTAuDEf6LLCGSfg35VmxAE5Eo</p>
-                <button id="copy-address" class="secondary-button">Copy Address</button>
-                <span id="copy-confirmation" class="copy-confirmation">Copied!</span>
-              </div>
-              
-              <div class="qr-code">
-                <img src="qr-code.png" alt="Wallet QR Code">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <p class="thank-you">Thank you for your support! ❤️</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Transaction Status Modal -->
-    <div id="transaction-modal" class="modal transaction-modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Transaction Status</h2>
-        </div>
-        <div class="modal-body">
-          <div id="transaction-status"></div>
-          <div id="transaction-details"></div>
-        </div>
-        <div class="modal-footer">
-          <button id="close-transaction" class="secondary-button">Close</button>
-        </div>
       </div>
     </div>
   </div>
