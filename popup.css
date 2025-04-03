@@ -22,7 +22,8 @@ html, body {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.02em; /* Slight negative letter spacing for Apple style */
   background-color: #1e1e1e;
   color: #f0f0f0;
   opacity: 1;
@@ -1422,7 +1423,7 @@ h1#title-text.greyed-out {
   transition: transform 0.08s ease-out; /* Even faster for active state */
 }
 
-/* Add specific styling for the title text */
+/* Remove the specific font styling since it's now applied to the entire body */
 #title-text, 
 h2, 
 .site-name-label,
@@ -1430,6 +1431,5 @@ h2,
 .empty-state,
 .token-name,
 .token-symbol {
-  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  letter-spacing: -0.02em; /* Slight negative letter spacing for Apple style */
+  /* These elements inherit the font from body now */
 } 
