@@ -419,7 +419,7 @@ input:checked + .slider:before {
   width: 32px;
   height: 32px;
   object-fit: contain;
-  transition: transform 0.2s ease;
+  transition: transform 0.1s ease-out; /* Match the snappy transition */
 }
 
 /* Create a single synchronized animation for all wave effects */
@@ -707,15 +707,17 @@ h2 {
 .button-wrapper {
   display: inline-block;
   cursor: pointer !important;
+  transition: all 0.1s ease-out; /* Add snappy transition */
 }
 
 .button-wrapper:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.25);
   transform: scale(1.05);
 }
 
 .button-wrapper:active {
   transform: scale(0.95);
+  transition: transform 0.08s ease-out; /* Even faster for active state */
 }
 
 /* Site buttons hover/animations using button-wrapper */
@@ -723,19 +725,21 @@ h2 {
   display: inline-block;
   cursor: pointer !important;
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.1s ease-out; /* Snappier transition */
 }
 
 .site-button-group .button-wrapper:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.25);
 }
 
 .site-button-group .button-wrapper:hover .site-button-logo {
   transform: scale(1.15);
+  transition: transform 0.1s ease-out; /* Match the snappier transition */
 }
 
 .site-button-group .button-wrapper:active {
   transform: scale(0.95);
+  transition: transform 0.08s ease-out; /* Even faster for active state */
 }
 
 /* Override site button hover effects since they're now handled by the wrapper */
@@ -1378,7 +1382,7 @@ h1#title-text.greyed-out {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  transition: all 0.15s ease; /* Faster transition for snappier feel */
+  transition: all 0.1s ease-out; /* Snappier transition */
   white-space: nowrap;
   min-width: 70px;
   text-align: center;
@@ -1387,11 +1391,12 @@ h1#title-text.greyed-out {
 .tip-dev-button:hover {
   background-color: #444;
   transform: scale(1.05);
-  filter: brightness(1.2);
+  filter: brightness(1.25);
 }
 
 .tip-dev-button:active {
   transform: scale(0.95);
+  transition: transform 0.08s ease-out; /* Even faster for active state */
 }
 
 .website-button {
@@ -1403,15 +1408,16 @@ h1#title-text.greyed-out {
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  transition: all 0.15s ease; /* Faster transition for snappier feel */
+  transition: all 0.1s ease-out; /* Snappier transition */
 }
 
 .website-button:hover {
   background-color: #444;
   transform: scale(1.05);
-  filter: brightness(1.2);
+  filter: brightness(1.25);
 }
 
 .website-button:active {
   transform: scale(0.95);
+  transition: transform 0.08s ease-out; /* Even faster for active state */
 } 
