@@ -13,6 +13,9 @@
     </div>
     
     <header>
+      <div class="header-buttons left-buttons">
+        <button id="tip-dev-button" class="tip-dev-button">Tip&nbsp;Dev</button>
+      </div>
       <h1 id="title-text">Can Opener</h1>
       <div class="header-buttons">
         <button id="website-button" class="website-button">Website</button>
@@ -117,8 +120,14 @@
     </div>
     
     <div class="recent-section">
-      <h2>History</h2>
-      <div id="recent-addresses-list">
+      <div class="section-header">
+        <h2>History</h2>
+        <div class="view-toggle">
+          <button id="view-3d" class="view-button">3D</button>
+          <button id="view-list" class="view-button active">List</button>
+        </div>
+      </div>
+      <div id="recent-addresses-list" class="list-view">
         <div class="loading">Loading recent addresses...</div>
       </div>
     </div>

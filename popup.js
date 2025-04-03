@@ -17,12 +17,62 @@ document.addEventListener('DOMContentLoaded', function() {
   const tipDevButton = document.getElementById('tip-dev-button');
   if (tipDevButton) {
     tipDevButton.addEventListener('click', function() {
-      // Use a clean URL with just the highlight parameter
-      window.open('https://officialcanopener.github.io/Can-Opener/?highlight=support', '_blank');
+      window.open('https://officialcanopener.github.io/Can-Opener/#supportDev', '_blank');
     });
   }
   
+  // Add event listeners for view toggle buttons
+  const view3dButton = document.getElementById('view-3d');
+  const viewListButton = document.getElementById('view-list');
   const recentAddressesList = document.getElementById('recent-addresses-list');
+  
+  if (view3dButton && viewListButton) {
+    // Initialize view mode from storage
+    chrome.storage.local.get('viewMode', function(result) {
+      const viewMode = result.viewMode || 'list'; // Default to list view
+      setViewMode(viewMode);
+    });
+    
+    view3dButton.addEventListener('click', function() {
+      setViewMode('3d');
+      // Save preference
+      chrome.storage.local.set({ viewMode: '3d' });
+    });
+    
+    viewListButton.addEventListener('click', function() {
+      setViewMode('list');
+      // Save preference
+      chrome.storage.local.set({ viewMode: 'list' });
+    });
+  }
+  
+  // Function to set view mode
+  function setViewMode(mode) {
+    if (mode === '3d') {
+      // Activate 3D button
+      view3dButton.classList.add('active');
+      viewListButton.classList.remove('active');
+      
+      // Switch to 3D view
+      recentAddressesList.classList.remove('list-view');
+      recentAddressesList.classList.add('carousel-view');
+      
+      // Reload addresses in 3D format
+      loadRecentAddresses();
+    } else {
+      // Activate List button
+      viewListButton.classList.add('active');
+      view3dButton.classList.remove('active');
+      
+      // Switch to List view
+      recentAddressesList.classList.add('list-view');
+      recentAddressesList.classList.remove('carousel-view');
+      
+      // Reload addresses in list format
+      loadRecentAddresses();
+    }
+  }
+  
   const extensionActiveToggle = document.getElementById('extension-active');
   const waveEffectToggle = document.getElementById('wave-effect');
   const staticColorPicker = document.getElementById('static-color');
@@ -586,28 +636,61 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Static color picker
     staticColorPicker.addEventListener('input', function() {
-      settings.staticColor = this.value;
+      const newColor = this.value;
+      settings.staticColor = newColor;
       
-      // Update the effect indicator when in static mode
+      // Only update if in static mode
       if (!settings.waveEffect) {
-        updateEffectIndicator(settings);
+        // Apply direct color changes to all necessary elements
         
-        // Also update the active site button with the new color
-        document.querySelectorAll('.site-button.active').forEach(btn => {
-          btn.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-          btn.style.borderColor = settings.staticColor;
-        });
-        
-        // Update the title color
-        const titleElement = document.getElementById('title-text');
-        if (titleElement) {
-          titleElement.style.color = settings.staticColor;
+        // Update STATIC button directly
+        const effectBtn = document.getElementById('effect-indicator');
+        if (effectBtn) {
+          effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
+          effectBtn.style.color = newColor;
+          effectBtn.style.borderColor = newColor;
         }
         
-        // Update token names in the history section immediately
-        updateHistoryTokenNames(settings);
+        // Update title text spans
+        const titleEl = document.getElementById('title-text');
+        if (titleEl) {
+          // First, ensure title has the correct structure for static mode
+          if (!titleEl.querySelector('.static-char')) {
+            // Rebuild the title with static spans if needed
+            titleEl.innerHTML = '';
+            const titleText = 'Can Opener';
+            [...titleText].forEach(char => {
+              const span = document.createElement('span');
+              span.textContent = char;
+              span.className = char === ' ' ? 'static-char space-char' : 'static-char';
+              span.style.color = newColor;
+              titleEl.appendChild(span);
+            });
+          } else {
+            // Update existing static spans
+            titleEl.querySelectorAll('.static-char').forEach(span => {
+              span.style.color = newColor;
+            });
+          }
+        }
+        
+        // Update site buttons
+        document.querySelectorAll('.site-button.active').forEach(btn => {
+          btn.style.backgroundColor = hexToRgba(newColor, 0.2);
+          btn.style.borderColor = newColor;
+        });
+        
+        // Update token names
+        document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
+          tokenName.style.color = newColor;
+        });
+        
+        document.querySelectorAll('.token-name .static-char').forEach(span => {
+          span.style.color = newColor;
+        });
       }
       
+      // Save the new settings
       saveSettings(settings);
     });
     
@@ -622,13 +705,16 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateHistoryTokenNames(settings) {
     // For static mode, update the color of all token names
     if (!settings.waveEffect) {
+      const currentColor = settings.staticColor;
+      
+      // Update regular token names
       document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
-        tokenName.style.color = settings.staticColor;
+        tokenName.style.color = currentColor;
       });
       
-      // Also handle any static-char spans
+      // Update any static-char spans within token names
       document.querySelectorAll('.token-name .static-char').forEach(span => {
-        span.style.color = settings.staticColor;
+        span.style.color = currentColor;
       });
     }
     
@@ -683,9 +769,17 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       effectIndicator.textContent = 'STATIC';
       effectIndicator.className = 'status-indicator static-active';
-      effectIndicator.style.backgroundColor = `${hexToRgba(settings.staticColor, 0.2)}`;
-      effectIndicator.style.color = settings.staticColor;
-      effectIndicator.style.borderColor = settings.staticColor;
+      
+      // Make sure the colors are applied consistently and forcefully
+      const currentColor = settings.staticColor;
+      
+      // Check if the color picker is currently being used - if so, don't override its styles
+      if (document.activeElement !== staticColorPicker) {
+        effectIndicator.style.backgroundColor = hexToRgba(currentColor, 0.2);
+        effectIndicator.style.color = currentColor;
+        effectIndicator.style.borderColor = currentColor;
+      }
+      
       // Hide speed selector
       document.getElementById('speed-selector-container').style.display = 'none';
       // Show color picker
@@ -694,25 +788,32 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update the active site button to use static color
       document.querySelectorAll('.site-button.active').forEach(btn => {
         btn.style.animation = 'none';
-        btn.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-        btn.style.borderColor = settings.staticColor;
+        btn.style.backgroundColor = hexToRgba(currentColor, 0.2);
+        btn.style.borderColor = currentColor;
       });
       
       // Apply static color to title
       if (titleElement) {
-        // Instead of just setting text, create a span to ensure consistent positioning
-        titleElement.innerHTML = '';
-        titleElement.className = 'wave-text'; // Keep the wave-text class for consistent positioning
+        // Check if we already have static spans - if so, don't recreate them
+        const hasStaticSpans = titleElement.querySelector('.static-char');
         
-        // Create a single span for the entire text with the same structure as wave mode
-        const titleText = 'Can Opener';
-        [...titleText].forEach((char, index) => {
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.className = char === ' ' ? 'static-char space-char' : 'static-char';
-          span.style.color = settings.staticColor;
-          titleElement.appendChild(span);
-        });
+        if (!hasStaticSpans) {
+          // Instead of just setting text, create a span to ensure consistent positioning
+          titleElement.innerHTML = '';
+          titleElement.className = 'wave-text'; // Keep the wave-text class for consistent positioning
+          titleElement.style.color = ''; // Clear any direct color on the title element
+          
+          // Create a single span for the entire text with the same structure as wave mode
+          const titleText = 'Can Opener';
+          [...titleText].forEach((char, index) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.className = char === ' ' ? 'static-char space-char' : 'static-char';
+            // Apply the color directly and forcefully
+            span.style.color = currentColor;
+            titleElement.appendChild(span);
+          });
+        }
       }
     }
     
@@ -1240,10 +1341,17 @@ document.addEventListener('DOMContentLoaded', function() {
     safelyExecuteChromeAPI(() => {
     chrome.storage.local.set({ settings: settings }, function() {
         try {
-      updateUI(settings);
+          // Check if this is just a color change in static mode
+          const isJustColorChange = settings.waveEffect === false && 
+                                   document.activeElement === staticColorPicker;
+          
+          if (!isJustColorChange) {
+            // For other changes, update the full UI
+            updateUI(settings);
+          }
           
           // Always show refresh notification regardless of extension state
-      showRefreshNotification();
+          showRefreshNotification();
           
           // If wave effect is enabled, restart animations to ensure sync
           if (settings.waveEffect) {
@@ -1367,26 +1475,203 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Load recent addresses
   function loadRecentAddresses() {
-  // Fetch recent addresses from storage
-  chrome.storage.local.get(['recentAddresses', 'settings'], function(result) {
-    const recentAddresses = result.recentAddresses || [];
-    const settings = result.settings || defaultSettings;
+    // Fetch recent addresses from storage
+    chrome.storage.local.get(['recentAddresses', 'settings'], function(result) {
+      const recentAddresses = result.recentAddresses || [];
+      const settings = result.settings || defaultSettings;
+      const is3DView = recentAddressesList.classList.contains('carousel-view');
+      
+      // Clear loading message
+      recentAddressesList.innerHTML = '';
+      
+      if (recentAddresses.length === 0) {
+        // Show empty state
+        recentAddressesList.innerHTML = `
+          <div class="empty-state">
+            History is empty. Tokens will appear here after clicking addresses online.
+          </div>
+        `;
+        return;
+      }
+      
+      if (is3DView) {
+        // Create 3D carousel
+        createCarouselView(recentAddresses, settings);
+      } else {
+        // Create traditional list view
+        createListView(recentAddresses, settings);
+      }
+    });
+  }
+  
+  // Create carousel (3D) view
+  function createCarouselView(addresses, settings) {
+    // Create carousel container
+    const carouselContainer = document.createElement('div');
+    carouselContainer.className = 'carousel-container';
     
-    // Clear loading message
-    recentAddressesList.innerHTML = '';
+    // Calculate angle step based on number of items
+    const angleStep = 360 / addresses.length;
+    const radius = Math.min(150, addresses.length * 20); // Adjust radius based on item count
     
-    if (recentAddresses.length === 0) {
-      // Show empty state
-      recentAddressesList.innerHTML = `
-        <div class="empty-state">
-                History is empty. Tokens will appear here after clicking addresses online.
-        </div>
-      `;
-      return;
+    // Create items arranged in a circle
+    addresses.forEach((item, index) => {
+      const addressItem = document.createElement('div');
+      addressItem.className = 'address-item';
+      
+      // Position in 3D space around a circle
+      const angle = angleStep * index;
+      addressItem.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
+      
+      const addressLink = document.createElement('a');
+      addressLink.className = 'address-link';
+      addressLink.href = buildTradingSiteUrl(item.address, settings.tradingSite);
+      addressLink.target = '_blank';
+      addressLink.rel = 'noopener noreferrer';
+      
+      // Create token container
+      const tokenContainer = document.createElement('div');
+      tokenContainer.className = 'token-container';
+      
+      // Add token logo if available
+      if (item.tokenMetadata && item.tokenMetadata.logoURI) {
+        const tokenLogo = document.createElement('img');
+        tokenLogo.src = item.tokenMetadata.logoURI;
+        tokenLogo.className = 'token-logo';
+        tokenLogo.onerror = function() {
+          // If logo fails to load, hide it
+          this.style.display = 'none';
+        };
+        tokenContainer.appendChild(tokenLogo);
+      } else {
+        // Create placeholder logo
+        const placeholderLogo = document.createElement('div');
+        placeholderLogo.className = 'token-logo-placeholder';
+        placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
+          ? item.tokenMetadata.symbol.charAt(0) 
+          : '?';
+        tokenContainer.appendChild(placeholderLogo);
+      }
+      
+      // Create token info container
+      const tokenInfo = document.createElement('div');
+      tokenInfo.className = 'token-info';
+      
+      // Add token name and symbol
+      if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
+        // Token name - dynamic based on wave effect setting
+        const tokenName = document.createElement('div');
+        
+        if (settings.waveEffect) {
+          // For 3D view, simplify to just text even with wave effect on
+          tokenName.className = 'token-name';
+          tokenName.textContent = item.tokenMetadata.name;
+        } else {
+          // Static color mode
+          tokenName.className = 'token-name';
+          tokenName.textContent = item.tokenMetadata.name;
+          tokenName.style.color = settings.staticColor;
+        }
+        
+        tokenInfo.appendChild(tokenName);
+        
+        // Token symbol
+        const tokenSymbol = document.createElement('div');
+        tokenSymbol.className = 'token-symbol';
+        tokenSymbol.textContent = item.tokenMetadata.symbol;
+        tokenInfo.appendChild(tokenSymbol);
+      } else {
+        // Display "Unknown Token" for unrecognized tokens
+        const tokenName = document.createElement('div');
+        tokenName.className = 'token-name';
+        tokenName.textContent = 'Unknown Token';
+        tokenInfo.appendChild(tokenName);
+      }
+      
+      tokenContainer.appendChild(tokenInfo);
+      addressLink.appendChild(tokenContainer);
+      addressItem.appendChild(addressLink);
+      
+      // Simplified timestamp for 3D view
+      const timestamp = document.createElement('div');
+      timestamp.className = 'timestamp';
+      timestamp.textContent = formatRelativeTime(item.timestamp);
+      addressItem.appendChild(timestamp);
+      
+      // Add click handler to open the URL
+      addressItem.addEventListener('click', function() {
+        window.open(addressLink.href, '_blank');
+      });
+      
+      carouselContainer.appendChild(addressItem);
+    });
+    
+    // Add carousel to DOM
+    recentAddressesList.appendChild(carouselContainer);
+    
+    // Add event listeners for interactive scrolling
+    let startX, scrolling = false;
+    let initialRotation = 0;
+    let currentRotation = 0;
+    
+    recentAddressesList.addEventListener('mousedown', startDrag);
+    recentAddressesList.addEventListener('touchstart', startDrag, { passive: true });
+    
+    function startDrag(e) {
+      scrolling = true;
+      startX = e.clientX || e.touches[0].clientX;
+      carouselContainer.classList.add('paused');
+      
+      // Get current rotation
+      const transform = window.getComputedStyle(carouselContainer).getPropertyValue('transform');
+      const matrix = new DOMMatrix(transform);
+      initialRotation = Math.atan2(matrix.m32, matrix.m33) * (180 / Math.PI);
+      currentRotation = initialRotation;
+      
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('touchmove', drag, { passive: true });
+      document.addEventListener('mouseup', stopDrag);
+      document.addEventListener('touchend', stopDrag);
     }
     
+    function drag(e) {
+      if (!scrolling) return;
+      const x = e.clientX || e.touches[0].clientX;
+      const deltaX = x - startX;
+      
+      // Calculate new rotation based on drag distance
+      const newRotation = initialRotation + (deltaX * 0.5);
+      currentRotation = newRotation;
+      carouselContainer.style.transform = `rotateY(${newRotation}deg)`;
+    }
+    
+    function stopDrag() {
+      if (!scrolling) return;
+      scrolling = false;
+      
+      // Resume animation after 2 seconds of inactivity
+      setTimeout(() => {
+        if (!scrolling) {
+          carouselContainer.style.transition = 'transform 1s ease';
+          carouselContainer.style.transform = ''; // Reset inline style
+          setTimeout(() => {
+            carouselContainer.style.transition = '';
+            carouselContainer.classList.remove('paused');
+          }, 1000);
+        }
+      }, 2000);
+      
+      document.removeEventListener('mousemove', drag);
+      document.removeEventListener('touchmove', drag);
+      document.removeEventListener('mouseup', stopDrag);
+      document.removeEventListener('touchend', stopDrag);
+    }
+  }
+  
+  // Create traditional list view
+  function createListView(addresses, settings) {
     // Create address items
-    recentAddresses.forEach(item => {
+    addresses.forEach(item => {
       const addressItem = document.createElement('div');
       addressItem.className = 'address-item';
       
@@ -1396,78 +1681,78 @@ document.addEventListener('DOMContentLoaded', function() {
       addressLink.target = '_blank';
       addressLink.rel = 'noopener noreferrer';
       
-        // Create a container for token info
-        const tokenContainer = document.createElement('div');
-        tokenContainer.className = 'token-container';
+      // Create a container for token info
+      const tokenContainer = document.createElement('div');
+      tokenContainer.className = 'token-container';
+      
+      // Add token logo if available
+      if (item.tokenMetadata && item.tokenMetadata.logoURI) {
+        const tokenLogo = document.createElement('img');
+        tokenLogo.src = item.tokenMetadata.logoURI;
+        tokenLogo.className = 'token-logo';
+        tokenLogo.onerror = function() {
+          // If logo fails to load, hide it
+          this.style.display = 'none';
+        };
+        tokenContainer.appendChild(tokenLogo);
+      } else {
+        // Create placeholder logo
+        const placeholderLogo = document.createElement('div');
+        placeholderLogo.className = 'token-logo-placeholder';
+        placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
+          ? item.tokenMetadata.symbol.charAt(0) 
+          : '?';
+        tokenContainer.appendChild(placeholderLogo);
+      }
+      
+      // Create token info container
+      const tokenInfo = document.createElement('div');
+      tokenInfo.className = 'token-info';
+      
+      // Add token name and symbol
+      if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
+        // Token name - dynamic based on wave effect setting
+        const tokenName = document.createElement('div');
         
-        // Add token logo if available
-        if (item.tokenMetadata && item.tokenMetadata.logoURI) {
-          const tokenLogo = document.createElement('img');
-          tokenLogo.src = item.tokenMetadata.logoURI;
-          tokenLogo.className = 'token-logo';
-          tokenLogo.onerror = function() {
-            // If logo fails to load, hide it
-            this.style.display = 'none';
-          };
-          tokenContainer.appendChild(tokenLogo);
+        if (settings.waveEffect) {
+          // Apply wave effect to token name
+          tokenName.className = 'token-name chroma-wave wave-text';
+          
+          // Split token name into characters for the wave effect
+          const nameChars = item.tokenMetadata.name.split('');
+          nameChars.forEach((char, index) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            // Set character index for staggered animation
+            span.style.setProperty('--char-index', index);
+            span.className = 'chroma-char';
+            tokenName.appendChild(span);
+          });
         } else {
-          // Create placeholder logo
-          const placeholderLogo = document.createElement('div');
-          placeholderLogo.className = 'token-logo-placeholder';
-          placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
-            ? item.tokenMetadata.symbol.charAt(0) 
-            : '?';
-          tokenContainer.appendChild(placeholderLogo);
-        }
-        
-        // Create token info container
-        const tokenInfo = document.createElement('div');
-        tokenInfo.className = 'token-info';
-        
-        // Add token name and symbol
-        if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
-          // Token name - dynamic based on wave effect setting
-          const tokenName = document.createElement('div');
-          
-          if (settings.waveEffect) {
-            // Apply wave effect to token name
-            tokenName.className = 'token-name chroma-wave wave-text';
-            
-            // Split token name into characters for the wave effect
-            const nameChars = item.tokenMetadata.name.split('');
-            nameChars.forEach((char, index) => {
-              const span = document.createElement('span');
-              span.textContent = char;
-              // Set character index for staggered animation
-              span.style.setProperty('--char-index', index);
-              span.className = 'chroma-char';
-              tokenName.appendChild(span);
-            });
-          } else {
-            // Static color mode
-            tokenName.className = 'token-name';
-            tokenName.textContent = item.tokenMetadata.name;
-            tokenName.style.color = settings.staticColor;
-          }
-          
-          tokenInfo.appendChild(tokenName);
-          
-          // Token symbol (no animation)
-          const tokenSymbol = document.createElement('div');
-          tokenSymbol.className = 'token-symbol';
-          tokenSymbol.textContent = item.tokenMetadata.symbol;
-          tokenInfo.appendChild(tokenSymbol);
-        } else {
-          // Display "Unknown Token" for unrecognized tokens
-          const tokenName = document.createElement('div');
+          // Static color mode
           tokenName.className = 'token-name';
-          tokenName.textContent = 'Unknown Token';
-          tokenInfo.appendChild(tokenName);
+          tokenName.textContent = item.tokenMetadata.name;
+          tokenName.style.color = settings.staticColor;
         }
         
-        tokenContainer.appendChild(tokenInfo);
-        addressLink.appendChild(tokenContainer);
-        addressItem.appendChild(addressLink);
+        tokenInfo.appendChild(tokenName);
+        
+        // Token symbol (no animation)
+        const tokenSymbol = document.createElement('div');
+        tokenSymbol.className = 'token-symbol';
+        tokenSymbol.textContent = item.tokenMetadata.symbol;
+        tokenInfo.appendChild(tokenSymbol);
+      } else {
+        // Display "Unknown Token" for unrecognized tokens
+        const tokenName = document.createElement('div');
+        tokenName.className = 'token-name';
+        tokenName.textContent = 'Unknown Token';
+        tokenInfo.appendChild(tokenName);
+      }
+      
+      tokenContainer.appendChild(tokenInfo);
+      addressLink.appendChild(tokenContainer);
+      addressItem.appendChild(addressLink);
       
       // Add timestamp
       const timestamp = document.createElement('div');
@@ -1475,14 +1760,13 @@ document.addEventListener('DOMContentLoaded', function() {
       timestamp.textContent = formatRelativeTime(item.timestamp);
       addressItem.appendChild(timestamp);
         
-        // Add click handler to open the URL since we disabled pointer-events on the inner link
-        addressItem.addEventListener('click', function() {
-          window.open(addressLink.href, '_blank');
-        });
+      // Add click handler to open the URL since we disabled pointer-events on the inner link
+      addressItem.addEventListener('click', function() {
+        window.open(addressLink.href, '_blank');
+      });
       
       recentAddressesList.appendChild(addressItem);
     });
-  });
   }
   
   // Start initializing the UI
