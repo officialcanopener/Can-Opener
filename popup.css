@@ -1423,7 +1423,13 @@ h1#title-text.greyed-out {
 }
 
 /* Add specific styling for the title text */
-#title-text {
+#title-text, 
+h2, 
+.site-name-label,
+.loading, 
+.empty-state,
+.token-name,
+.token-symbol {
   font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   letter-spacing: -0.02em; /* Slight negative letter spacing for Apple style */
 } 
