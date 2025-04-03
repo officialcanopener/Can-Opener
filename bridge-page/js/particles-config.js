@@ -1,8 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Create an array of colors that match the chroma wave effect
-    const colors = ['#00ffff', '#00ff00', '#ffff00', '#ff0000', '#ff00ff', '#0000ff'];
-    
-    // Initialize the particles with wave colors
     particlesJS('particles-js', {
         particles: {
             number: {
@@ -13,13 +9,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             color: {
-                value: colors
+                value: '#ffffff'
             },
             shape: {
                 type: 'circle'
             },
             opacity: {
-                value: 0.2,
+                value: 0.1,
                 random: false,
                 anim: {
                     enable: false
@@ -35,8 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
             line_linked: {
                 enable: true,
                 distance: 150,
-                color: '#ffffff',
-                opacity: 0.15,
+                color: '#808080',
+                opacity: 0.1,
                 width: 1
             },
             move: {
@@ -69,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 grab: {
                     distance: 140,
                     line_linked: {
-                        opacity: 0.4
+                        opacity: 0.3
                     }
                 },
                 push: {
