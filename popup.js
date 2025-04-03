@@ -5,6 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.style.minWidth = "400px";
   document.body.style.minHeight = "600px";
   
+  // Add event listener for the website button
+  const websiteButton = document.getElementById('website-button');
+  if (websiteButton) {
+    websiteButton.addEventListener('click', function() {
+      window.open('https://officialcanopener.github.io/Can-Opener/', '_blank');
+    });
+  }
+  
   const recentAddressesList = document.getElementById('recent-addresses-list');
   const extensionActiveToggle = document.getElementById('extension-active');
   const waveEffectToggle = document.getElementById('wave-effect');
@@ -1502,139 +1510,4 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-
-  // Initialize the tip feature
-  initTipFeature();
-});
-
-// Initialize tip feature
-function initTipFeature() {
-  // Get DOM elements
-  const tipButton = document.getElementById('tip-button');
-  if (!tipButton) {
-    console.error('Tip button not found, skipping tip feature initialization');
-    return;
-  }
-  
-  const tipModal = document.getElementById('tip-modal');
-  const closeModal = document.querySelector('.close-modal');
-  const phantomDirectLink = document.getElementById('phantom-direct-link');
-  const copyAddressButton = document.getElementById('copy-address');
-  const copyConfirmation = document.getElementById('copy-confirmation');
-  const amountButtons = document.querySelectorAll('.amount-btn');
-  const customAmountContainer = document.querySelector('.custom-amount-container');
-  const customAmountInput = document.getElementById('custom-amount');
-  const transactionModal = document.getElementById('transaction-modal');
-  const closeTransactionButton = document.getElementById('close-transaction');
-  
-  // Constants
-  const RECIPIENT_ADDRESS = '84U4Z1E7iYdXjkhBUWgDTAuDEf6LLCGSfg35VmxAE5Eo';
-  
-  // Variables
-  let selectedAmount = 0.1; // Default amount
-  
-  // Open tip modal
-  tipButton.addEventListener('click', function() {
-    tipModal.style.display = 'block';
-    
-    // Ensure buttons are reset/properly styled
-    resetAmountButtons();
-    document.querySelector('.amount-btn[data-amount="0.1"]').classList.add('selected');
-    customAmountContainer.style.display = 'none';
-  });
-  
-  // Close the tip modal
-  closeModal.addEventListener('click', function() {
-    tipModal.style.display = 'none';
-    
-    // Reset values
-    selectedAmount = 0.1;
-    resetAmountButtons();
-    customAmountContainer.style.display = 'none';
-  });
-  
-  // Close transaction status modal
-  if (closeTransactionButton) {
-    closeTransactionButton.addEventListener('click', function() {
-      transactionModal.style.display = 'none';
-    });
-  }
-  
-  // Close modals when clicking outside
-  window.addEventListener('click', function(event) {
-    if (event.target === tipModal) {
-      tipModal.style.display = 'none';
-    }
-    
-    if (transactionModal && event.target === transactionModal) {
-      transactionModal.style.display = 'none';
-    }
-  });
-  
-  // Handle amount selection
-  amountButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      if (button.classList.contains('custom')) {
-        // Show custom amount input
-        customAmountContainer.style.display = 'block';
-        selectedAmount = parseFloat(customAmountInput.value) || 0.1;
-      } else {
-        // Hide custom amount input if visible
-        customAmountContainer.style.display = 'none';
-        selectedAmount = parseFloat(button.getAttribute('data-amount'));
-      }
-      
-      // Update selected state
-      resetAmountButtons();
-      button.classList.add('selected');
-    });
-  });
-  
-  // Update selected amount when custom input changes
-  if (customAmountInput) {
-    customAmountInput.addEventListener('input', function() {
-      selectedAmount = parseFloat(this.value) || 0.1;
-    });
-  }
-  
-  // Reset all amount buttons
-  function resetAmountButtons() {
-    amountButtons.forEach(btn => btn.classList.remove('selected'));
-  }
-  
-  // Open Phantom button handler
-  const openPhantomButton = document.getElementById('open-phantom-button');
-  if (openPhantomButton) {
-    openPhantomButton.addEventListener('click', function() {
-      const formattedAmount = parseFloat(selectedAmount).toFixed(2);
-      
-      // Create URL with parameters for the intermediary web page
-      // This web page will handle the interaction with Phantom
-      const bridgeUrl = `https://officialcanopener.github.io/Can-Opener/bridge-page/?` + 
-                       `address=${encodeURIComponent(RECIPIENT_ADDRESS)}` + 
-                       `&amount=${encodeURIComponent(formattedAmount)}`;
-      
-      // Open the bridge page in a new tab
-      window.open(bridgeUrl, '_blank');
-      
-      // Show status message
-      const statusElement = document.getElementById('phantom-status');
-      if (statusElement) {
-        statusElement.textContent = 'Redirecting to secure payment page...';
-      }
-    });
-  }
-  
-  // Copy wallet address to clipboard
-  copyAddressButton.addEventListener('click', function() {
-    navigator.clipboard.writeText(RECIPIENT_ADDRESS).then(() => {
-      // Show confirmation
-      copyConfirmation.style.display = 'block';
-      setTimeout(() => {
-        copyConfirmation.style.display = 'none';
-      }, 2000);
-    }).catch(err => {
-      console.error('Could not copy address: ', err);
-    });
-  });
-} 
+}); 

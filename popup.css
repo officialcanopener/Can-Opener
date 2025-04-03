@@ -1353,4 +1353,29 @@ h1#title-text.greyed-out {
   margin-bottom: 5px;
   line-height: 1.4;
   color: #cccccc;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.website-button {
+  padding: 6px 12px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.website-button:hover {
+  background-color: #444;
+}
+
+.website-button:active {
+  transform: scale(0.95);
 } 
