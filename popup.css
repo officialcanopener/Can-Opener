@@ -1420,4 +1420,10 @@ h1#title-text.greyed-out {
 .website-button:active {
   transform: scale(0.95);
   transition: transform 0.08s ease-out; /* Even faster for active state */
+}
+
+/* Add specific styling for the title text */
+#title-text {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.02em; /* Slight negative letter spacing for Apple style */
 } 
