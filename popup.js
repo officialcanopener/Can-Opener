@@ -17,9 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const tipDevButton = document.getElementById('tip-dev-button');
   if (tipDevButton) {
     tipDevButton.addEventListener('click', function() {
-      // Use a slight delay parameter to ensure the page loads from the top first,
-      // then scrolls to the support section with animation
-      window.open('https://officialcanopener.github.io/Can-Opener/?highlight=support&delay=true', '_blank');
+      // Try both approaches: URL parameter and hash fragment
+      window.open('https://officialcanopener.github.io/Can-Opener/?highlight=support#supportDev', '_blank');
     });
   }
   

@@ -28,40 +28,51 @@ document.addEventListener('DOMContentLoaded', () => {
         supportSection.classList.add('highlight-section');
     }
     
-    // Check URL for highlight parameter and auto-scroll if present
-    function checkURLParams() {
+    // Check if URL has parameters
+    function checkURLForScrollTriggers() {
+        console.log('Checking URL for scroll triggers');
+        
+        // Check for highlight parameter in query string
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('highlight') && urlParams.get('highlight') === 'support') {
-            // Check if delay parameter is present
-            const shouldDelay = urlParams.has('delay');
+        const highlightParam = urlParams.get('highlight');
+        
+        if (highlightParam === 'support') {
+            console.log('Found support highlight parameter');
             
-            // Use a longer delay if the delay parameter is present
-            const delayTime = shouldDelay ? 1500 : 500;
+            // Scroll to top first
+            window.scrollTo(0, 0);
             
-            // If delay parameter is present, scroll to top first
-            if (shouldDelay) {
-                window.scrollTo(0, 0);
-            }
-            
-            // Delay the scroll to ensure the page is fully loaded and
-            // user sees the top of the page first
+            // Use a longer delay to ensure the page loads completely
             setTimeout(() => {
+                console.log('Executing delayed scroll');
                 scrollToSupportSection();
-            }, delayTime);
+            }, 1500);
+            
+            return true;
         }
-    }
-    
-    // Also check for hash in URL
-    function checkURLHash() {
+        
+        // Check for hash in URL (alternative method)
         if (window.location.hash === '#supportDev') {
-            // Small delay to ensure the page is fully loaded
+            console.log('Found supportDev hash');
+            
+            // Scroll to top first
+            window.scrollTo(0, 0);
+            
+            // Use a longer delay to ensure the page loads completely
             setTimeout(() => {
+                console.log('Executing delayed scroll from hash');
                 scrollToSupportSection();
-            }, 500);
+            }, 1500);
+            
+            return true;
         }
+        
+        return false;
     }
     
-    // Run checks when page loads
-    checkURLParams();
-    checkURLHash();
+    // Run the check when the page loads
+    checkURLForScrollTriggers();
+    
+    // Also check again after a short delay to ensure the page is fully loaded
+    setTimeout(checkURLForScrollTriggers, 500);
 }); 
