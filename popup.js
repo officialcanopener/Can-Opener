@@ -49,15 +49,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to set view mode
   function setViewMode(mode) {
     if (mode === '3d') {
-      // Activate 3D button
+      // Activate Scroll button
       view3dButton.classList.add('active');
       viewListButton.classList.remove('active');
       
-      // Switch to 3D view
+      // Switch to horizontal scroll view
       recentAddressesList.classList.remove('list-view');
-      recentAddressesList.classList.add('carousel-view');
+      recentAddressesList.classList.add('scroll-view');
       
-      // Reload addresses in 3D format
+      // Reload addresses in horizontal scroll format
       loadRecentAddresses();
     } else {
       // Activate List button
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Switch to List view
       recentAddressesList.classList.add('list-view');
-      recentAddressesList.classList.remove('carousel-view');
+      recentAddressesList.classList.remove('scroll-view');
       
       // Reload addresses in list format
       loadRecentAddresses();
@@ -1479,7 +1479,7 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.storage.local.get(['recentAddresses', 'settings'], function(result) {
       const recentAddresses = result.recentAddresses || [];
       const settings = result.settings || defaultSettings;
-      const is3DView = recentAddressesList.classList.contains('carousel-view');
+      const isScrollView = recentAddressesList.classList.contains('scroll-view');
       
       // Clear loading message
       recentAddressesList.innerHTML = '';
@@ -1494,9 +1494,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      if (is3DView) {
-        // Create 3D carousel
-        createCarouselView(recentAddresses, settings);
+      if (isScrollView) {
+        // Create horizontal scroll view
+        createScrollView(recentAddresses, settings);
       } else {
         // Create traditional list view
         createListView(recentAddresses, settings);
@@ -1504,24 +1504,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Create carousel (3D) view
-  function createCarouselView(addresses, settings) {
-    // Create carousel container
-    const carouselContainer = document.createElement('div');
-    carouselContainer.className = 'carousel-container';
+  // Create horizontal scroll view
+  function createScrollView(addresses, settings) {
+    // Create scroll container
+    const scrollContainer = document.createElement('div');
+    scrollContainer.className = 'scroll-container';
     
-    // Calculate angle step based on number of items
-    const angleStep = 360 / addresses.length;
-    const radius = Math.min(150, addresses.length * 20); // Adjust radius based on item count
-    
-    // Create items arranged in a circle
+    // Create items in a horizontal row
     addresses.forEach((item, index) => {
       const addressItem = document.createElement('div');
-      addressItem.className = 'address-item';
-      
-      // Position in 3D space around a circle
-      const angle = angleStep * index;
-      addressItem.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
+      addressItem.className = 'address-item scroll-item';
       
       const addressLink = document.createElement('a');
       addressLink.className = 'address-link';
@@ -1563,9 +1555,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const tokenName = document.createElement('div');
         
         if (settings.waveEffect) {
-          // For 3D view, simplify to just text even with wave effect on
-          tokenName.className = 'token-name';
-          tokenName.textContent = item.tokenMetadata.name;
+          // Apply wave effect to token name
+          tokenName.className = 'token-name chroma-wave wave-text';
+          
+          // Split token name into characters for the wave effect
+          const nameChars = item.tokenMetadata.name.split('');
+          nameChars.forEach((char, index) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            // Set character index for staggered animation
+            span.className = 'chroma-char';
+            span.style.setProperty('--char-index', index);
+            tokenName.appendChild(span);
+          });
         } else {
           // Static color mode
           tokenName.className = 'token-name';
@@ -1590,12 +1592,13 @@ document.addEventListener('DOMContentLoaded', function() {
       
       tokenContainer.appendChild(tokenInfo);
       addressLink.appendChild(tokenContainer);
-      addressItem.appendChild(addressLink);
       
-      // Simplified timestamp for 3D view
+      // Add timestamp
       const timestamp = document.createElement('div');
       timestamp.className = 'timestamp';
       timestamp.textContent = formatRelativeTime(item.timestamp);
+      
+      addressItem.appendChild(addressLink);
       addressItem.appendChild(timestamp);
       
       // Add click handler to open the URL
@@ -1603,68 +1606,61 @@ document.addEventListener('DOMContentLoaded', function() {
         window.open(addressLink.href, '_blank');
       });
       
-      carouselContainer.appendChild(addressItem);
+      scrollContainer.appendChild(addressItem);
     });
     
-    // Add carousel to DOM
-    recentAddressesList.appendChild(carouselContainer);
+    // Add scroll container to DOM
+    recentAddressesList.appendChild(scrollContainer);
     
-    // Add event listeners for interactive scrolling
-    let startX, scrolling = false;
-    let initialRotation = 0;
-    let currentRotation = 0;
+    // Add smooth scrolling with mouse wheel
+    scrollContainer.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      scrollContainer.scrollLeft += e.deltaY;
+    }, { passive: false });
     
-    recentAddressesList.addEventListener('mousedown', startDrag);
-    recentAddressesList.addEventListener('touchstart', startDrag, { passive: true });
+    // Add touch scrolling support
+    let isScrolling = false;
+    let startX;
+    let scrollLeft;
     
-    function startDrag(e) {
-      scrolling = true;
-      startX = e.clientX || e.touches[0].clientX;
-      carouselContainer.classList.add('paused');
+    scrollContainer.addEventListener('touchstart', function(e) {
+      isScrolling = true;
+      startX = e.touches[0].clientX;
+      scrollLeft = scrollContainer.scrollLeft;
+    }, { passive: true });
+    
+    scrollContainer.addEventListener('touchmove', function(e) {
+      if (!isScrolling) return;
+      const x = e.touches[0].clientX;
+      const deltaX = startX - x;
+      scrollContainer.scrollLeft = scrollLeft + deltaX;
+    }, { passive: true });
+    
+    scrollContainer.addEventListener('touchend', function() {
+      isScrolling = false;
+    }, { passive: true });
+    
+    // Add mouse drag scrolling
+    scrollContainer.addEventListener('mousedown', function(e) {
+      isScrolling = true;
+      startX = e.clientX;
+      scrollLeft = scrollContainer.scrollLeft;
       
-      // Get current rotation
-      const transform = window.getComputedStyle(carouselContainer).getPropertyValue('transform');
-      const matrix = new DOMMatrix(transform);
-      initialRotation = Math.atan2(matrix.m32, matrix.m33) * (180 / Math.PI);
-      currentRotation = initialRotation;
-      
-      document.addEventListener('mousemove', drag);
-      document.addEventListener('touchmove', drag, { passive: true });
-      document.addEventListener('mouseup', stopDrag);
-      document.addEventListener('touchend', stopDrag);
+      document.addEventListener('mousemove', mouseMoveHandler);
+      document.addEventListener('mouseup', mouseUpHandler);
+    });
+    
+    function mouseMoveHandler(e) {
+      if (!isScrolling) return;
+      const x = e.clientX;
+      const deltaX = startX - x;
+      scrollContainer.scrollLeft = scrollLeft + deltaX;
     }
     
-    function drag(e) {
-      if (!scrolling) return;
-      const x = e.clientX || e.touches[0].clientX;
-      const deltaX = x - startX;
-      
-      // Calculate new rotation based on drag distance
-      const newRotation = initialRotation + (deltaX * 0.5);
-      currentRotation = newRotation;
-      carouselContainer.style.transform = `rotateY(${newRotation}deg)`;
-    }
-    
-    function stopDrag() {
-      if (!scrolling) return;
-      scrolling = false;
-      
-      // Resume animation after 2 seconds of inactivity
-      setTimeout(() => {
-        if (!scrolling) {
-          carouselContainer.style.transition = 'transform 1s ease';
-          carouselContainer.style.transform = ''; // Reset inline style
-          setTimeout(() => {
-            carouselContainer.style.transition = '';
-            carouselContainer.classList.remove('paused');
-          }, 1000);
-        }
-      }, 2000);
-      
-      document.removeEventListener('mousemove', drag);
-      document.removeEventListener('touchmove', drag);
-      document.removeEventListener('mouseup', stopDrag);
-      document.removeEventListener('touchend', stopDrag);
+    function mouseUpHandler() {
+      isScrolling = false;
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
     }
   }
   
@@ -1724,8 +1720,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const span = document.createElement('span');
             span.textContent = char;
             // Set character index for staggered animation
-            span.style.setProperty('--char-index', index);
             span.className = 'chroma-char';
+            span.style.setProperty('--char-index', index);
             tokenName.appendChild(span);
           });
         } else {
