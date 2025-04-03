@@ -1,16 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Get references to DOM elements
     const supportDevBtn = document.getElementById('supportDevBtn');
     const supportSection = document.getElementById('supportDev');
     const feedbackToggle = document.getElementById('feedbackToggle');
     const feedbackContent = document.getElementById('feedbackContent');
     const toggleIcon = feedbackToggle.querySelector('.toggle-icon');
     
-    // Flag to track if we've done a manual scroll
-    let hasPerformedManualScroll = false;
+    // Global flag to track if scrolling is needed
+    let needsScrollToSupport = false;
     
     // Support Development button scroll
     supportDevBtn.addEventListener('click', () => {
-        scrollToSupportSection();
+        // Just perform scroll directly without extra logic
+        performScrollToSupport();
     });
 
     // Toggle feedback section
@@ -19,76 +21,61 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleIcon.classList.toggle('active');
     });
     
-    // Function to scroll to and highlight the support section
-    function scrollToSupportSection() {
-        console.log('Executing scrollToSupportSection');
+    // Check URL parameters immediately
+    checkURLParameters();
+    
+    // Set up a safe scroll handler with long enough delays
+    function checkURLParameters() {
+        console.log('Checking URL parameters');
         
-        // Ensure we're at the top first for a better UX
-        if (!hasPerformedManualScroll) {
-            console.log('Scrolling to top before moving to support section');
-            window.scrollTo(0, 0);
-        }
-        
-        // Use setTimeout to ensure a visual pause at the top of the page
-        setTimeout(() => {
-            console.log('Now scrolling to support section');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('highlight') === 'support') {
+            console.log('Found highlight=support parameter, setting up scroll');
             
-            // Perform smooth scroll to the support section
+            // Force scroll to top immediately
+            window.scrollTo(0, 0);
+            
+            // Set the global flag
+            needsScrollToSupport = true;
+            
+            // Set up a series of attempts to ensure scrolling happens
+            setTimeout(attemptScroll, 1000);
+            setTimeout(attemptScroll, 2000);
+            setTimeout(attemptScroll, 3000);
+        }
+    }
+    
+    // Function to attempt scrolling if needed
+    function attemptScroll() {
+        if (needsScrollToSupport) {
+            console.log('Attempting scroll to support section');
+            performScrollToSupport();
+        }
+    }
+    
+    // Actual scroll implementation
+    function performScrollToSupport() {
+        console.log('Performing scroll to support section');
+        
+        // Reset the flag as we're handling the scroll now
+        needsScrollToSupport = false;
+        
+        // Ensure we're at the top first
+        window.scrollTo(0, 0);
+        
+        // Set up the delayed scroll
+        setTimeout(() => {
+            console.log('Now executing scroll');
+            
+            // Scroll to the support section
             supportSection.scrollIntoView({ behavior: 'smooth' });
             
-            // Reset animation by removing class and forcing reflow
+            // Reset and apply the highlight animation
             supportSection.classList.remove('highlight-section');
             void supportSection.offsetWidth;
-            
-            // Add highlight animation with wave effect
             supportSection.classList.add('highlight-section');
             
-            // Mark that we've done a manual scroll
-            hasPerformedManualScroll = true;
-            
-            console.log('Scroll and highlight complete');
-        }, 800); // Shorter delay for better responsiveness once the page is loaded
+            console.log('Scroll complete');
+        }, 1500);
     }
-    
-    // Main function to check URL parameters and handle scrolling
-    function handleURLParameters() {
-        console.log('Checking URL parameters for scroll triggers');
-        
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // Check if we have a highlight=support parameter
-        if (urlParams.get('highlight') === 'support') {
-            console.log('Found highlight=support parameter');
-            
-            // Force scroll to top first to ensure we see the page from the beginning
-            window.scrollTo(0, 0);
-            
-            // Extra safety - make sure we're really at the top
-            setTimeout(() => {
-                window.scrollTo(0, 0);
-                
-                // Use a delay to ensure the page is fully loaded
-                setTimeout(() => {
-                    console.log('Page should be fully loaded, executing scroll');
-                    scrollToSupportSection();
-                }, 1200);
-            }, 100);
-            
-            return true;
-        }
-        
-        return false;
-    }
-    
-    // Initialization function
-    function init() {
-        console.log('Theme.js initialization');
-        
-        // Check URL parameters on page load
-        handleURLParameters();
-    }
-    
-    // Run initialization
-    init();
 }); 
