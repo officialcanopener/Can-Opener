@@ -1,12 +1,574 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Can Opener - Redirecting...</title>
-    <meta http-equiv="refresh" content="0; URL=bridge-page/">
-    <link rel="canonical" href="bridge-page/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can&nbsp;Opener - Simplify Your Trading Experience</title>
+    <!-- Preload font to avoid CORB issues -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Add Solana Web3.js -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <!-- Add particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <!-- Add canvas-confetti for copy button effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom amount input styling */
+        .custom-amount-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .custom-spinner-buttons {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            height: 70%;
+            z-index: 10;
+        }
+        
+        .spinner-button {
+            background: white;
+            border: none;
+            border-radius: 4px;
+            color: black;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 20px;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            padding: 0;
+            margin: 1px;
+        }
+        
+        .spinner-button:hover {
+            opacity: 1;
+            background: white;
+        }
+        
+        .spinner-button + .spinner-button {
+            margin-top: 4px;
+        }
+        
+        #customAmount {
+            padding-right: 35px;
+        }
+        
+        /* Style for SOL label */
+        .sol-label {
+            position: absolute;
+            right: 38px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-text);
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to <a href="bridge-page/">Can Opener</a>...</p>
+    <!-- Particles background -->
+    <div id="particles-js"></div>
+
+    <!-- Header Navigation -->
+    <nav class="header-nav">
+        <button id="supportDevBtn" class="nav-button"><span class="hover-wave">Support Development</span></button>
+        <div class="right-nav">
+            <!-- Contact button moved to fixed position -->
+        </div>
+    </nav>
+
+    <!-- Fixed Contact Button -->
+    <a href="mailto:crypto.workflows@gmail.com" id="fixedContactBtn" class="nav-button"><span class="hover-wave">Contact</span></a>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="logo-placeholder">
+                <!-- Placeholder for logo with letter-by-letter wave effect -->
+                <div class="temp-logo" id="waveTitle">
+                    <span class="wave-letter" style="--i:0">C</span>
+                    <span class="wave-letter" style="--i:1">a</span>
+                    <span class="wave-letter" style="--i:2">n</span>
+                    <span class="wave-letter" style="--i:3">&nbsp;</span>
+                    <span class="wave-letter" style="--i:4">O</span>
+                    <span class="wave-letter" style="--i:5">p</span>
+                    <span class="wave-letter" style="--i:6">e</span>
+                    <span class="wave-letter" style="--i:7">n</span>
+                    <span class="wave-letter" style="--i:8">e</span>
+                    <span class="wave-letter" style="--i:9">r</span>
+                </div>
+            </div>
+            <h1>Simplify Your Trading Experience</h1>
+            <p class="tagline">Streamline your crypto trading workflow with one-click access to token information.</p>
+            <p class="blockchain-support">Currently supporting the Solana blockchain.<br>Request support for additional blockchains through our <span id="feedbackFormLink" class="clickable-link">feedback form</span> below.</p>
+        </div>
+    </section>
+
+    <!-- Value Proposition Cards -->
+    <section class="features">
+        <div class="container">
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔗</div>
+                    <h3>One-Click Trading Access</h3>
+                    <p>Instantly open tokens on your preferred trading platform.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h3>Instant Token Recognition</h3>
+                    <p>Automatically detect and parse token addresses from any page.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎨</div>
+                    <h3>Customizable Experience</h3>
+                    <p>Personalize how token addresses appear with custom styling options.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Origin Story -->
+    <section class="origin">
+        <div class="container">
+            <h2>The Story</h2>
+            <p>Can Opener was developed to enhance the trading experience by making it more efficient and smooth. What started as a personal tool to streamline workflows has evolved into a solution that helps traders save time when viewing token contract addresses.</p>
+        </div>
+    </section>
+
+    <!-- Platforms Support -->
+    <section class="platforms">
+        <div class="container">
+            <h2>Supported Platforms</h2>
+            <div class="platform-grid">
+                <a href="https://axiom.trade/" target="_blank" class="platform">
+                    <div class="platform-logo">
+                        <img src="assets/images/axiom-logo.png" alt="Axiom Logo">
+                    </div>
+                    <span class="hover-wave">Axiom</span>
+                </a>
+                <a href="https://neo.bullx.io/" target="_blank" class="platform">
+                    <div class="platform-logo">
+                        <img src="assets/images/bullx-logo.png" alt="BullX Logo">
+                    </div>
+                    <span class="hover-wave">BullX</span>
+                </a>
+                <a href="https://photon-sol.tinyastro.io/" target="_blank" class="platform">
+                    <div class="platform-logo">
+                        <img src="assets/images/photon-logo.png?v=2" alt="Photon Logo">
+                    </div>
+                    <span class="hover-wave">Photon</span>
+                </a>
+                <a href="https://www.gmgn.ai/" target="_blank" class="platform">
+                    <div class="platform-logo">
+                        <img src="assets/images/gmgn-logo.png" alt="GMGN Logo">
+                    </div>
+                    <span class="hover-wave">GMGN</span>
+                </a>
+                <a href="https://dexscreener.com/" target="_blank" class="platform">
+                    <div class="platform-logo">
+                        <img src="assets/images/dexscreener-logo.png" alt="Dexscreener Logo">
+                    </div>
+                    <span class="hover-wave">Dexscreener</span>
+                </a>
+                <a href="https://www.birdeye.so/" target="_blank" class="platform">
+                    <div class="platform-logo">
+                        <img src="assets/images/birdeye-logo.png" alt="Birdeye Logo">
+                    </div>
+                    <span class="hover-wave">Birdeye</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support Development -->
+    <section id="supportDev" class="support">
+        <div class="container" style="text-align: center;">
+            <h1>Support Development</h1>
+            <p class="tagline">Support the ongoing development of Can Opener and future trading tools.</p>
+            <div id="tipContainer">
+                <!-- 
+                TEMPORARY COMMENT - TIP SECTION FUNCTIONALITY REMOVED (TO BE RESTORED LATER)
+                This section containing the tip buttons, custom amount input, and connect wallet functionality
+                has been temporarily commented out as it's not working correctly.
+                The plan is to restore this functionality in a future update.
+                -->
+                <!--
+                <div class="tip-options">
+                    <button class="tip-amount" data-amount="0.1"><span class="tip-text">0.1 SOL</span></button>
+                    <button class="tip-amount" data-amount="0.5"><span class="tip-text">0.5 SOL</span></button>
+                    <button class="tip-amount" data-amount="1"><span class="tip-text">1 SOL</span></button>
+                    <div class="custom-amount-wrapper">
+                        <input type="number" id="customAmount" placeholder="Custom amount" min="0.01" step="0.01">
+                        <span class="sol-label">SOL</span>
+                        <div class="custom-controls">
+                            <button type="button" class="custom-control" id="increment">&#43;</button>
+                            <button type="button" class="custom-control" id="decrement">&#8722;</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="connectWallet" class="action-button"><span class="hover-wave">Connect Wallet</span></button>
+                <button id="sendTip" class="action-button" style="display: none;"><span class="hover-wave">Send Tip</span></button>
+                <div id="status" class="status-message"></div>
+                
+                <p class="manual-tip-message">Don't want to connect wallet? Copy the Solana wallet address below to manually send a tip to the developer.</p>
+                -->
+                
+                <!-- Keeping just the manual wallet address and copy functionality -->
+                <p class="blockchain-support">Copy the Solana wallet address below to manually send a tip to the developer.</p>
+                
+                <div class="manual-tip-container" style="justify-content: center;">
+                    <div class="wallet-address-wrapper">
+                        <input type="text" id="walletAddressInput" value="84U4Z1E7iYdXjkhBUWgDTAuDEf6LLCGSfg35VmxAE5Eo" readonly>
+                    </div>
+                    <button id="copyAddressButton" class="copy-address-button"><span class="hover-wave">Copy</span></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Request -->
+    <section id="feedbackSection" class="feedback">
+        <div class="container">
+            <h2 id="feedbackToggle" class="collapsible-trigger">
+                Feature Requests & Feedback
+                <span class="toggle-icon">▼</span>
+            </h2>
+            <p>Help shape the future of Can Opener and upcoming trading tools.</p>
+            <div id="feedbackContent" class="collapsible-content">
+                <div class="form-container">
+                    <iframe id="feedbackForm" 
+                            src="https://docs.google.com/forms/d/e/1FAIpQLSdBIfc6pIOqJZz7RgjsfOZIOal7nxiMfvnoV3MpeiC2KJx9LQ/viewform?embedded=true&usp=pp_url&hl=en&formkey=responsiveframe" 
+                            width="100%" 
+                            height="1858" 
+                            frameborder="0" 
+                            marginheight="0" 
+                            marginwidth="0">
+                        Loading…
+                    </iframe>
+                    <div id="formLoadingIndicator" class="form-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading feedback form...</p>
+                    </div>
+                    <div id="formErrorMessage" class="form-error" style="display: none;">
+                        <p>Having trouble loading the form?</p>
+                        <button id="reloadFormBtn" class="reload-form-button">Try Again</button>
+                        <p>or</p>
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdBIfc6pIOqJZz7RgjsfOZIOal7nxiMfvnoV3MpeiC2KJx9LQ/viewform" target="_blank" class="open-form-link">Open Form in New Tab</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Information We Collect</h3>
+                <p>Can Opener is designed with privacy in mind. We do not collect or store any personal information about our users. We do not track your browsing history, and we do not have access to your cryptocurrency wallets or private keys.</p>
+                
+                <h3>How Tips Work</h3>
+                <p>When you send a tip using Can Opener, the transaction occurs directly between your wallet and the recipient's wallet. We never have access to your funds or private keys. The extension simply facilitates the connection between your browser and your wallet application.</p>
+                
+                <h3>Analytics and Cookies</h3>
+                <p>Can Opener does not use cookies or tracking technologies. We may collect anonymous usage statistics to help improve the extension, but this information cannot be used to identify individual users.</p>
+                
+                <h3>Updates to This Policy</h3>
+                <p>We may update this privacy policy from time to time. We will notify users of any significant changes by updating the version number of the extension and providing release notes.</p>
+                
+                <h3>Contact Us</h3>
+                <p>If you have any questions about this privacy policy or Can Opener's practices, please contact us at crypto.workflows@gmail.com.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Can Opener. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#" id="privacyLink">Privacy Policy</a>
+                <a href="mailto:crypto.workflows@gmail.com">crypto.workflows@gmail.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/wallet.js"></script>
+    <script src="js/particles-config.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Support Dev button scroll
+            document.getElementById('supportDevBtn').addEventListener('click', function() {
+                const supportSection = document.getElementById('supportDev');
+                supportSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Reset animation by removing class and forcing reflow
+                supportSection.classList.remove('highlight-section');
+                void supportSection.offsetWidth;
+                
+                // Add highlight effect with wave animation
+                supportSection.classList.add('highlight-section');
+            });
+            
+            // Privacy Policy Modal
+            const privacyLink = document.getElementById('privacyLink');
+            const privacyModal = document.getElementById('privacyModal');
+            const closeModal = document.querySelector('.close-modal');
+            
+            privacyLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                privacyModal.classList.add('active');
+            });
+            
+            closeModal.addEventListener('click', function() {
+                privacyModal.classList.remove('active');
+            });
+            
+            window.addEventListener('click', function(e) {
+                if (e.target === privacyModal) {
+                    privacyModal.classList.remove('active');
+                }
+            });
+            
+            // Collapsible sections - using display instead of max-height
+            const feedbackToggle = document.getElementById('feedbackToggle');
+            const feedbackContent = document.getElementById('feedbackContent');
+            const toggleIcon = feedbackToggle.querySelector('.toggle-icon');
+            
+            // Feedback form link
+            const feedbackFormLink = document.getElementById('feedbackFormLink');
+            
+            feedbackFormLink.addEventListener('click', function() {
+                // Scroll to the feedback section
+                const feedbackSection = document.getElementById('feedbackSection');
+                feedbackSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // If the feedback content is not already visible, open it
+                if (window.getComputedStyle(feedbackContent).display === 'none') {
+                    feedbackContent.style.display = 'block';
+                    toggleIcon.classList.add('active');
+                    
+                    // Start loading animation
+                    checkFormLoading();
+                }
+                
+                // Reset animation by removing class and forcing reflow
+                feedbackSection.classList.remove('highlight-section');
+                void feedbackSection.offsetWidth;
+                
+                // Add highlight effect
+                feedbackSection.classList.add('highlight-section');
+            });
+            
+            feedbackToggle.addEventListener('click', function() {
+                console.log("Toggle clicked");
+                
+                // Check if content is currently visible
+                const isVisible = window.getComputedStyle(feedbackContent).display !== 'none';
+                
+                if (isVisible) {
+                    // Close the content
+                    console.log("Closing form");
+                    feedbackContent.style.display = 'none';
+                    toggleIcon.classList.remove('active');
+                    
+                    // Scroll to the support section
+                    document.getElementById('supportDev').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    // Open the content
+                    console.log("Opening form");
+                    feedbackContent.style.display = 'block';
+                    toggleIcon.classList.add('active');
+                    
+                    // Start loading animation
+                    checkFormLoading();
+                    
+                    // Scroll to the feedback section
+                    document.getElementById('feedbackSection').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+            
+            // Tip amount selection
+            const tipAmounts = document.querySelectorAll('.tip-amount');
+            tipAmounts.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Clear previous selections
+                    tipAmounts.forEach(btn => {
+                        btn.classList.remove('selected');
+                        const tipText = btn.querySelector('.tip-text');
+                        if (tipText) tipText.classList.remove('wave-active');
+                    });
+                    
+                    // Select this button
+                    this.classList.add('selected');
+                    const tipText = this.querySelector('.tip-text');
+                    if (tipText) tipText.classList.add('wave-active');
+                    
+                    // Update custom amount field
+                    document.getElementById('customAmount').value = this.getAttribute('data-amount');
+                });
+            });
+            
+            // Google Form handling
+            const feedbackForm = document.getElementById('feedbackForm');
+            const loadingIndicator = document.getElementById('formLoadingIndicator');
+            const errorMessage = document.getElementById('formErrorMessage');
+            const reloadFormBtn = document.getElementById('reloadFormBtn');
+            
+            let formLoadTimeout;
+            let formLoadAttempts = 0;
+            let formIsLoading = false; // Track if the form is in the process of loading
+            let formLoaded = false; // Track if the form has completely loaded
+            const MAX_LOAD_ATTEMPTS = 3;
+            
+            // Preload the form when the page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                // Start form preloading in background
+                setTimeout(function() {
+                    const formSrc = feedbackForm.src;
+                    formIsLoading = true;
+                    feedbackForm.src = formSrc;
+                }, 1000);
+            });
+            
+            // Listen for iframe load events
+            feedbackForm.addEventListener('load', function() {
+                // Form has loaded, but we may still show loading animation for UX
+                formLoadAttempts = 0;
+                formLoaded = true;
+                formIsLoading = false;
+                
+                // Clear timeout since form loaded successfully
+                if (formLoadTimeout) {
+                    clearTimeout(formLoadTimeout);
+                }
+            });
+            
+            // Reload button click handler
+            reloadFormBtn.addEventListener('click', function() {
+                formLoadAttempts = 0; // Reset attempts when manually clicked
+                formLoaded = false;
+                reloadForm();
+            });
+            
+            function checkFormLoading() {
+                // Check if the feedback content is visible
+                if (window.getComputedStyle(feedbackContent).display === 'none') {
+                    return;
+                }
+                
+                console.log("Loading form animation");
+                
+                // Reset animation state and ensure visibility
+                loadingIndicator.style.display = 'flex';
+                loadingIndicator.classList.remove('fade-out');
+                errorMessage.style.display = 'none';
+                
+                // Force the spinner to restart animation by removing and re-adding it
+                const spinner = loadingIndicator.querySelector('.loading-spinner');
+                const spinnerClone = spinner.cloneNode(true);
+                spinner.parentNode.replaceChild(spinnerClone, spinner);
+                
+                // Hide form initially
+                feedbackForm.classList.remove('loaded');
+                
+                // Faster animation
+                const animationDuration = 800; // 0.8 seconds
+                
+                // Set a timeout to show the form after animation completes
+                setTimeout(function() {
+                    console.log("Animation complete, showing form");
+                    // Fade out loading indicator
+                    loadingIndicator.classList.add('fade-out');
+                    
+                    // Add loaded class to show form with animation
+                    feedbackForm.classList.add('loaded');
+                    
+                    // Hide loading indicator after fade completes
+                    setTimeout(function() {
+                        if (window.getComputedStyle(feedbackContent).display !== 'none') {
+                            loadingIndicator.style.display = 'none';
+                        }
+                    }, 650); // Match the CSS transition time plus a small buffer
+                }, animationDuration);
+                
+                // If form isn't already loaded, make sure it's loading in the background
+                if (!formLoaded) {
+                    const currentSrc = feedbackForm.src;
+                    if (!formIsLoading) {
+                        formIsLoading = true;
+                        setTimeout(() => {
+                            feedbackForm.src = currentSrc;
+                        }, 100);
+                    }
+                    
+                    // Set a timeout for actual form loading error
+                    if (formLoadTimeout) {
+                        clearTimeout(formLoadTimeout);
+                    }
+                    
+                    formLoadTimeout = setTimeout(function() {
+                        if (formLoadAttempts >= MAX_LOAD_ATTEMPTS) {
+                            loadingIndicator.style.display = 'none';
+                            errorMessage.style.display = 'flex';
+                        } else {
+                            reloadForm();
+                        }
+                    }, 5000);
+                }
+            }
+            
+            function reloadForm() {
+                formLoadAttempts++;
+                const currentSrc = feedbackForm.src;
+                feedbackForm.src = ''; // Clear the src
+                formIsLoading = true;
+                
+                setTimeout(() => {
+                    feedbackForm.src = currentSrc; // Set it back to reload
+                }, 100);
+                
+                // Only show loading if section is active
+                if (feedbackContent.classList.contains('active')) {
+                    loadingIndicator.style.display = 'flex';
+                    errorMessage.style.display = 'none';
+                }
+                
+                // Reset the timeout
+                if (formLoadTimeout) {
+                    clearTimeout(formLoadTimeout);
+                }
+                
+                formLoadTimeout = setTimeout(function() {
+                    if (formLoadAttempts >= MAX_LOAD_ATTEMPTS && feedbackContent.classList.contains('active')) {
+                        loadingIndicator.style.display = 'none';
+                        errorMessage.style.display = 'flex';
+                    }
+                }, 5000); // Reduced timeout
+            }
+        });
+    </script>
 </body>
-</html> 
+</html>
+
