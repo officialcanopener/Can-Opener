@@ -142,20 +142,55 @@ document.addEventListener('DOMContentLoaded', function() {
       const timestamp = Date.now();
       const root = document.documentElement;
       
+      // Store current color before restarting to avoid flashes
+      const titleElement = document.getElementById('title-text');
+      const currentColors = new Map();
+      
+      // Capture current colors of animated elements
+      if (titleElement) {
+        titleElement.querySelectorAll('.chroma-char').forEach(span => {
+          currentColors.set(span, getComputedStyle(span).color);
+        });
+      }
+      
+      // Also store colors for token names and other animated elements
+      document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
+        currentColors.set(span, getComputedStyle(span).color);
+      });
+      
       // Step 1: Set the restart variable
       root.style.setProperty('--animation-restart', `-${timestamp % 1000}ms`);
       
-      // Step 2: Force a style recalculation to ensure the animations restart
+      // Step 2: Set explicit colors before adding the restart class to prevent white flash
+      currentColors.forEach((color, element) => {
+        // Only set explicit color if it's not the default
+        if (color && color !== 'rgb(255, 255, 255)') {
+          element.style.setProperty('--original-color', color);
+          element.style.color = color;
+        } else {
+          // Default to the first color in the animation if we don't have a current color
+          element.style.color = '#ff0000';
+        }
+      });
+      
+      // Step 3: Force a style recalculation to ensure the animations restart
       root.classList.add('force-animation-restart');
       
-      // Step 3: Force the browser to process the changes before removing the class
+      // Step 4: Force the browser to process the changes before removing the class
       void root.offsetWidth;
       
-      // Step 4: Remove the class
+      // Step 5: Remove the class
       root.classList.remove('force-animation-restart');
       
-      // Step 5: Check if we need to reapply the title animation
-      const titleElement = document.getElementById('title-text');
+      // Step 6: Reset explicit colors to allow animation to control them
+      currentColors.forEach((color, element) => {
+        // Small delay to ensure animation has started
+        setTimeout(() => {
+          element.style.removeProperty('color');
+        }, 10);
+      });
+      
+      // Step 7: Check if we need to reapply the title animation
       if (titleElement && titleElement.classList.contains('wave-text')) {
         // Re-apply wave effect to ensure synchronization
         safelyExecuteChromeAPI(() => {
@@ -173,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
       
-      // Step 6: Broadcast restart message safely to content scripts
+      // Step 8: Broadcast restart message safely to content scripts
       broadcastToAllTabs({
         action: 'restartAnimation',
         restartTimestamp: timestamp
