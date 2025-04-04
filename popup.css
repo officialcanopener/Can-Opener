@@ -72,7 +72,7 @@ body {
 }
 
 .status-banner.refresh-required.discord-refresh:hover {
-  filter: brightness(1.2); /* Match other hover effects */
+  filter: none; /* Remove brightness filter to keep original color */
   transform: scale(1.02);
 }
 
