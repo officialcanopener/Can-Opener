@@ -3,7 +3,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  contain: layout size;  /* Critical CSS containment to prevent layout shifts */
 }
 
 :root {
@@ -20,7 +19,6 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden; /* Prevent body scrolling */
-  cursor: default;
 }
 
 body {
@@ -65,10 +63,6 @@ body {
   border-color: #ffa500;
   cursor: pointer !important;
   transition: all 0.2s ease;
-  contain: strict;
-  transform: none !important;
-  transition: opacity 0.15s ease-out;
-  pointer-events: auto;
 }
 
 /* Special styling for Discord refresh notification */
@@ -601,19 +595,15 @@ h2 {
   transition: background-color 0.2s;
   position: relative;
   cursor: pointer !important;
-  contain: strict;
-  transform: none !important;
-  transition: opacity 0.15s ease-out;
-  pointer-events: auto;
 }
 
 .address-item:hover {
   filter: brightness(1.2);
-  transform: none !important;
+  transform: scale(1.02);
 }
 
 .address-item:active {
-  transform: none !important;
+  transform: scale(0.98);
 }
 
 .address-link {
@@ -731,29 +721,19 @@ h2 {
 
 /* Button wrapper to ensure cursor works */
 .button-wrapper {
-  position: relative;
   display: inline-block;
-  pointer-events: auto;
-  /* Remove all transforms that could cause repositioning */
-  transform: none !important;
-  /* Lock dimensions */
-  contain: strict;
-  /* Ensure hardware acceleration */
-  will-change: opacity;
-  /* Remove transition effects that might cause jumps */
-  transition: opacity 0.15s ease-out;
+  cursor: pointer !important;
+  transition: all 0.1s ease-out; /* Add snappy transition */
 }
 
 .button-wrapper:hover {
-  opacity: 0.8;
-  /* Remove ALL transforms */
-  transform: none !important;
+  filter: brightness(1.25);
+  transform: scale(1.05);
 }
 
 .button-wrapper:active {
-  opacity: 0.7;
-  /* Remove ALL transforms */
-  transform: none !important;
+  transform: scale(0.95);
+  transition: transform 0.08s ease-out; /* Even faster for active state */
 }
 
 /* Add specific styles for speed button wrappers */
@@ -820,11 +800,11 @@ h2 {
 
 .address-item:hover {
   filter: brightness(1.2);
-  transform: none !important;
+  transform: scale(1.02);
 }
 
 .address-item:active {
-  transform: none !important;
+  transform: scale(0.98);
 }
 
 .address-link {
@@ -1552,28 +1532,43 @@ h1#title-text.greyed-out {
   margin-top: 3px;
 }
 
-/* ---------------- CURSOR CONTROL - CRITICAL FIX ------------------ */
-/* Control cursor purely through CSS */
+/* ---------------- CURSOR CONTROL - MACBOOK FIX ------------------ */
+/* Apply cursor styles directly to elements instead of in hover state */
 
-/* Prevent ANY layout or size shifts for ANY elements */
+/* Reset pointer events */
 * {
-  contain: layout size;  /* Critical CSS containment to prevent layout shifts */
+  pointer-events: none;
 }
 
-/* Reset cursor styles */
-html, body { 
-  cursor: default; 
-}
-
-.button-wrapper, 
-.address-item,
-.status-banner.refresh-required,
-input[type="color"] { 
-  cursor: pointer; 
+/* Enable pointer events and set default cursor */
+body,
+.container {
   pointer-events: auto;
+  cursor: default;
 }
 
-/* All other elements should not handle events */
+/* Set cursor: pointer directly on clickable elements (not on hover) */
+.button-wrapper {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.status-banner.refresh-required {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.address-item {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+input[type="color"] {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Ensure child elements don't have their own cursor styles */
 .status-indicator,
 .speed-option,
 .site-button,
@@ -1586,4 +1581,35 @@ input[type="color"] {
 .static-char,
 h1, h2, h3, p, span:not(#status-message) {
   pointer-events: none;
+  cursor: inherit; /* Inherit cursor from parent */
+}
+
+/* Keep visual hover effects, but remove any cursor changes */
+.button-wrapper:hover {
+  filter: brightness(1.25);
+  transform: scale(1.05);
+}
+
+.button-wrapper:active {
+  transform: scale(0.95);
+  transition: transform 0.08s ease-out;
+}
+
+/* Special handling for direct-clickable elements - keep visual effects only */
+.status-banner.refresh-required:hover {
+  filter: none;
+  transform: scale(1.02);
+}
+
+.status-banner.refresh-required:active {
+  transform: scale(0.98);
+}
+
+.address-item:hover {
+  filter: brightness(1.2);
+  transform: scale(1.02);
+}
+
+.address-item:active {
+  transform: scale(0.98);
 } 

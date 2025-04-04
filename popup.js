@@ -1,23 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // ===== CURSOR OPTIMIZATION =====
-  // Apply performance optimizations for cursor handling to prevent flicker and spasms
-  document.body.style.cursor = 'default'; // Set base cursor
-  
-  // Remove previous debouncing approach and use direct DOM-level cursor setting
-  // This avoids any cursor calculations in JS that might cause flickering
-  
-  // Force all styles through CSS only - no JS handling of cursor
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Force cursor styles at the highest level */
-    html, body { cursor: default !important; }
-    .button-wrapper, 
-    .address-item,
-    .status-banner.refresh-required,
-    input[type="color"] { cursor: pointer !important; }
-  `;
-  document.head.appendChild(style);
-
   // Set document dimensions immediately to avoid resize flicker
   document.documentElement.style.minWidth = "400px";
   document.documentElement.style.minHeight = "600px";
