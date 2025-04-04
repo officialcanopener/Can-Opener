@@ -464,6 +464,22 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update UI based on new settings
       updateUI(settings);
       
+      // Ensure site button is properly styled based on the new mode
+      const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+      if (currentSiteButton) {
+        if (!settings.waveEffect) {
+          // Static mode
+          currentSiteButton.style.animation = 'none';
+          currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+          currentSiteButton.style.borderColor = settings.staticColor;
+        } else {
+          // Wave/Fast mode
+          currentSiteButton.style.animation = '';
+          currentSiteButton.style.backgroundColor = '';
+          currentSiteButton.style.borderColor = '';
+        }
+      }
+      
       // Always restart animations when effect changes to ensure synchronization
       restartAllAnimations();
       
@@ -728,6 +744,14 @@ document.addEventListener('DOMContentLoaded', function() {
         effectIndicator.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
         effectIndicator.style.color = settings.staticColor;
         effectIndicator.style.borderColor = settings.staticColor;
+        
+        // Also ensure site button is in static mode
+        const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+        if (currentSiteButton) {
+          currentSiteButton.style.animation = 'none';
+          currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+          currentSiteButton.style.borderColor = settings.staticColor;
+        }
       }
       
       // Add clickable class
@@ -780,6 +804,23 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(function() {
         // This will handle all UI updates including site button selection
         updateUI(settings);
+        
+        // Additional direct update to ensure site button is correctly styled
+        // This ensures the site button properly reflects WAVE vs STATIC mode
+        const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+        if (currentSiteButton) {
+          if (!settings.waveEffect) {
+            // For STATIC mode, explicitly disable animation and set static color
+            currentSiteButton.style.animation = 'none';
+            currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+            currentSiteButton.style.borderColor = settings.staticColor;
+          } else {
+            // For WAVE mode, clear styling to allow animation
+            currentSiteButton.style.animation = '';
+            currentSiteButton.style.backgroundColor = '';
+            currentSiteButton.style.borderColor = '';
+          }
+        }
         
         // If wave effect is enabled, restart animations
         if (settings.waveEffect) {
