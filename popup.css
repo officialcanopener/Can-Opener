@@ -82,7 +82,7 @@ body {
 
 /* Regular refresh notification hover effects */
 .status-banner.refresh-required:hover {
-  filter: brightness(1.2);
+  filter: none; /* Remove brightness filter to keep original color */
   transform: scale(1.02);
 }
 
