@@ -379,6 +379,19 @@ function wrapAddressWithLink(node, address, startIndex) {
     // Add site-specific icon
     link.appendChild(createSiteIcon());
     
+    // Determine if we're on Discord
+    const isDiscord = window.location.hostname.includes('discord.com');
+    
+    // Animation speed settings
+    const speedValues = {
+      slow: 6,
+      medium: 3,
+      fast: 1
+    };
+    const speedSetting = currentSettings.animationSpeed || 'medium';
+    const speedValue = speedValues[speedSetting] || speedValues.medium;
+    const delayFactor = speedValue === 6 ? 0.08 : speedValue === 3 ? 0.05 : 0.02;
+    
     // Add the address text
     if (currentSettings.waveEffect) {
       // Split into individual spans for the chroma effect
@@ -392,6 +405,13 @@ function wrapAddressWithLink(node, address, startIndex) {
         // Add staggered delay based on character position
         span.style.setProperty('--char-index', index);
         span.className = 'chroma-char';
+        
+        // For Discord, add explicit animation properties
+        if (isDiscord) {
+          span.style.animationDuration = `${speedValue}s`;
+          span.style.animationDelay = `calc(${index} * ${delayFactor}s)`;
+        }
+        
         link.appendChild(span);
       });
     } else {
@@ -598,10 +618,43 @@ function applyAnimationSpeed(speedSetting, restartTimestamp) {
     root.style.setProperty('--animation-speed', `${speedValue}s`);
     root.style.setProperty('--animation-delay-factor', `${delayFactor}s`);
     
+    // Discord-specific handling: Apply styles directly to elements
+    // This is needed because Discord uses a complex DOM structure with Shadow DOM
+    if (window.location.hostname.includes('discord.com')) {
+      // Find all chroma-wave elements and apply the new speed directly
+      const chromeElements = document.querySelectorAll('.chroma-wave, .site-link, .wave-text, .chroma-char');
+      chromeElements.forEach(el => {
+        if (el.classList.contains('chroma-char')) {
+          // For individual characters, set their animation duration
+          el.style.animationDuration = `${speedValue}s`;
+          
+          // Calculate and set the animation delay based on the character index
+          const charIndex = el.style.getPropertyValue('--char-index') || 0;
+          el.style.animationDelay = `calc(${charIndex} * ${delayFactor}s)`;
+        } else if (el.classList.contains('wave-text') || el.classList.contains('site-link')) {
+          // For container elements, ensure their children have the correct timing
+          const chars = el.querySelectorAll('.chroma-char');
+          chars.forEach((char, index) => {
+            char.style.animationDuration = `${speedValue}s`;
+            char.style.animationDelay = `calc(${index} * ${delayFactor}s)`;
+          });
+        }
+      });
+    }
+    
     // If restart timestamp provided, restart animations
     if (restartTimestamp) {
       // Use modulo 1000 to keep delay within reasonable range
       root.style.setProperty('--animation-restart', `-${restartTimestamp % 1000}ms`);
+      
+      // For Discord, also restart animations by forcing a reflow
+      if (window.location.hostname.includes('discord.com')) {
+        document.querySelectorAll('.chroma-char').forEach(el => {
+          el.style.animation = 'none';
+          void el.offsetWidth; // Force reflow
+          el.style.animation = ''; // Restore animation
+        });
+      }
     }
   } catch (error) {
     console.warn('Error in applyAnimationSpeed:', error);
@@ -624,6 +677,52 @@ function forceAnimationRestart(timestamp) {
     
     // Step 4: Remove the class
     root.classList.remove('force-animation-restart');
+    
+    // Discord-specific handling
+    if (window.location.hostname.includes('discord.com')) {
+      // Find all animated elements
+      const animatedElements = document.querySelectorAll('.chroma-char, .site-link, .wave-text');
+      
+      // Reset and restart their animations
+      animatedElements.forEach(el => {
+        // Store original animation
+        const originalAnimation = window.getComputedStyle(el).animation;
+        
+        // Temporarily disable animation
+        el.style.animation = 'none';
+        
+        // Force reflow
+        void el.offsetWidth;
+        
+        // If this is a character with direct animation
+        if (el.classList.contains('chroma-char')) {
+          // Don't restore via blank string, use the computed value
+          if (originalAnimation && originalAnimation !== 'none') {
+            el.style.animation = originalAnimation;
+          } else {
+            el.style.animation = ''; // Remove the inline style
+          }
+        }
+        // If this is a container that might have animated children
+        else if (el.classList.contains('site-link') || el.classList.contains('wave-text')) {
+          el.style.animation = '';
+          
+          // Also restart animations for its children
+          const chars = el.querySelectorAll('.chroma-char');
+          chars.forEach(char => {
+            const charOrigAnim = window.getComputedStyle(char).animation;
+            char.style.animation = 'none';
+            void char.offsetWidth;
+            
+            if (charOrigAnim && charOrigAnim !== 'none') {
+              char.style.animation = charOrigAnim;
+            } else {
+              char.style.animation = '';
+            }
+          });
+        }
+      });
+    }
     
     // Step 5: Re-apply animation speed values to ensure consistency
     safelyExecuteChromeAPI(() => {
