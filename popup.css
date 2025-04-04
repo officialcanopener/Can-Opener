@@ -1431,4 +1431,13 @@ h1#title-text.greyed-out {
 .website-button:active {
   transform: scale(0.95);
   transition: transform 0.08s ease-out; /* Even faster for active state */
+}
+
+/* Styling for the Discord note text */
+.discord-note {
+  font-size: 11px;
+  color: rgba(255, 165, 0, 0.8);
+  font-weight: normal;
+  display: block;
+  margin-top: 3px;
 } 

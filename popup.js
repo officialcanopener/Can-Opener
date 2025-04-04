@@ -875,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkIfDiscord(isDiscord => {
       if (isDiscord) {
         // Discord-specific behavior - non-clickable banner
-        statusMessage.textContent = 'Refresh Required';
+        statusMessage.innerHTML = 'Refresh Required<br><span class="discord-note">This may take a moment on discord.com.</span>';
         
         // Add Discord-specific class
         statusBanner.classList.add('discord-refresh');
