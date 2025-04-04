@@ -1527,27 +1527,27 @@ h1#title-text.greyed-out {
 /* Status indicators (ON/OFF and WAVE/STATIC) - target only the span text */
 .button-wrapper:hover .status-indicator {
   /* Remove transform from the container */
-  transition: all 0.1s ease-out;
+  transition: all 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 .button-wrapper:hover .status-indicator span {
   /* Scale only the text span */
-  transform: scale(1.05);
+  transform: scale(1.15); /* Larger scale: 1.05 → 1.15 */
   display: inline-block;
-  transition: transform 0.1s ease-out;
+  transition: transform 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 /* Make sure active wave indicator maintains its animation but still scales text only */
 .button-wrapper:hover .status-indicator.wave-active {
   /* Remove transform from the container */
-  transition: all 0.1s ease-out;
+  transition: all 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 .button-wrapper:hover .status-indicator.wave-active span {
   /* Scale only the text span */
-  transform: scale(1.05);
+  transform: scale(1.15); /* Larger scale: 1.05 → 1.15 */
   display: inline-block;
-  transition: transform 0.1s ease-out;
+  transition: transform 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 /* Speed option numbers - target only the span text */
@@ -1556,27 +1556,27 @@ h1#title-text.greyed-out {
   border-color: transparent;
   filter: brightness(1.1);
   /* Remove transform from the container */
-  transition: all 0.1s ease-out;
+  transition: all 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 .speed-selector .button-wrapper:hover .speed-option:not(.active) span {
   /* Scale only the text span */
-  transform: scale(1.05);
+  transform: scale(1.15); /* Larger scale: 1.05 → 1.15 */
   display: inline-block;
-  transition: transform 0.1s ease-out;
+  transition: transform 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 /* Make active speed options scale text only */
 .speed-selector .button-wrapper:hover .speed-option.active {
   /* Remove transform from the container */
-  transition: all 0.1s ease-out;
+  transition: all 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 .speed-selector .button-wrapper:hover .speed-option.active span {
   /* Scale only the text span */
-  transform: scale(1.05);
+  transform: scale(1.15); /* Larger scale: 1.05 → 1.15 */
   display: inline-block;
-  transition: transform 0.1s ease-out;
+  transition: transform 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
 /* Add transition properties to elements that will be scaled */
@@ -1585,7 +1585,7 @@ h1#title-text.greyed-out {
 .website-button span,
 .status-indicator span,
 .speed-option span {
-  transition: transform 0.1s ease-out;
+  transition: transform 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
   display: inline-block;
 }
 
