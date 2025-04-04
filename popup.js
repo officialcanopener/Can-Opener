@@ -1,4 +1,52 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // ===== CURSOR OPTIMIZATION =====
+  // Apply performance optimizations for cursor handling to prevent flicker and spasms
+  document.body.style.cursor = 'default'; // Set base cursor
+  
+  // Debounce cursor style changes to prevent rapid flicker
+  let cursorChangeTimeout = null;
+  const CURSOR_DEBOUNCE_TIME = 10; // milliseconds
+  
+  // Create a single global handler for cursor changes
+  document.addEventListener('mousemove', function(e) {
+    if (cursorChangeTimeout) {
+      clearTimeout(cursorChangeTimeout);
+    }
+    
+    cursorChangeTimeout = setTimeout(function() {
+      // Find the actual target that should handle the cursor
+      let element = e.target;
+      let cursorSet = false;
+      
+      // Walk up the tree to find the first element that should handle cursor
+      while (element && element !== document && !cursorSet) {
+        // Check if this is a clickable wrapper element
+        if (element.classList.contains('button-wrapper') || 
+            (element.classList.contains('status-banner') && element.classList.contains('refresh-required')) ||
+            element.classList.contains('address-item') ||
+            element.tagName === 'INPUT') {
+          document.body.style.cursor = 'pointer';
+          cursorSet = true;
+        }
+        
+        element = element.parentElement;
+      }
+      
+      // If no clickable element was found, set back to default
+      if (!cursorSet) {
+        document.body.style.cursor = 'default';
+      }
+    }, CURSOR_DEBOUNCE_TIME);
+  }, { passive: true });
+  
+  // Handle leaving the popup entirely
+  document.addEventListener('mouseleave', function() {
+    if (cursorChangeTimeout) {
+      clearTimeout(cursorChangeTimeout);
+    }
+    document.body.style.cursor = 'default';
+  }, { passive: true });
+
   // Set document dimensions immediately to avoid resize flicker
   document.documentElement.style.minWidth = "400px";
   document.documentElement.style.minHeight = "600px";
