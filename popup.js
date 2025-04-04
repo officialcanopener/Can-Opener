@@ -319,317 +319,346 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Set up event listeners for settings changes
   function setupEventListeners(settings) {
+    // Helper function to handle the effect state transitions
+    function handleEffectToggle(settings) {
+      // Rotate through the three states: WAVE -> FAST -> STATIC -> WAVE
+      if (settings.waveEffect) {
+        if (!settings.fastMode) {
+          // Change from WAVE to FAST (still wave effect, but with fast speed)
+          settings.fastMode = true;
+          // Keep waveEffect as true
+        } else {
+          // Change from FAST to STATIC
+          settings.waveEffect = false;
+          settings.fastMode = false;
+        }
+      } else {
+        // Change from STATIC to WAVE
+        settings.waveEffect = true;
+        settings.fastMode = false;
+      }
+      
+      // Update flags for immediate response
+      isWaveEffect = settings.waveEffect;
+      isFastMode = settings.fastMode;
+      
+      // Update UI immediately
+      updateEffectIndicator(settings);
+      
+      // If wave effect is enabled, restart animations
+      if (settings.waveEffect) {
+        // Apply animation speed based on fast mode setting
+        const animSpeed = settings.fastMode ? 'fast' : 'medium';
+        applyAnimationSpeed(animSpeed);
+        
+        restartAllAnimations();
+      }
+      
+      // Save settings
+      saveSettings(settings);
+      
+      // Send message to background script to update content scripts
+      chrome.runtime.sendMessage({
+        action: 'updateEffectType',
+        waveEffect: settings.waveEffect,
+        staticColor: settings.staticColor,
+        fastMode: settings.fastMode
+      });
+      
+      // Mark for refresh to ensure content scripts are updated
+      refreshNeeded = true;
+      showRefreshNotification();
+    }
+    
+    // Helper function to handle ON/OFF toggle
+    function handleOnOffToggle(settings) {
+      console.log('ON/OFF button clicked, current state:', settings.extensionActive);
+      
+      // Toggle extension active state
+      settings.extensionActive = !settings.extensionActive;
+      isExtensionActive = settings.extensionActive;
+      
+      // Update the UI immediately for responsive feel
+      if (settings.extensionActive) {
+        // ON state
+        statusIndicator.innerHTML = '<span>ON</span>';
+        statusIndicator.classList.remove('inactive');
+        statusIndicator.classList.add('active');
+        statusIndicator.style.backgroundColor = 'rgba(0, 204, 0, 0.2)';
+        statusIndicator.style.color = '#00cc00';
+        statusIndicator.style.borderColor = '#00cc00';
+        
+        // COMPLETE RESET: Remove greyed-out styling from all UI elements
+        
+        // Reset effect indicator
+        effectIndicator.classList.remove('greyed-out');
+        effectIndicator.style.opacity = '';
+        effectIndicator.style.filter = '';
+        effectIndicator.style.animation = '';
+        effectIndicator.style.backgroundColor = '';
+        effectIndicator.style.color = '';
+        effectIndicator.style.borderColor = '';
+        
+        // Reset title
+        titleText.classList.remove('greyed-out');
+        titleText.style.opacity = '';
+        titleText.style.filter = '';
+        
+        // Reset all spans in title
+        titleText.querySelectorAll('.chroma-char, .static-char').forEach(span => {
+          span.classList.remove('greyed-out');
+          span.style.animation = '';
+          span.style.opacity = '';
+          span.style.filter = '';
+          span.style.color = '';
+        });
+        
+        // Reset ALL site buttons, not just active ones
+        document.querySelectorAll('.site-button').forEach(btn => {
+          btn.classList.remove('greyed-out');
+          btn.style.opacity = '';
+          btn.style.filter = '';
+        });
+        
+        // Reset active site button specifically
+        document.querySelectorAll('.site-button.active').forEach(btn => {
+          btn.classList.remove('greyed-out');
+          btn.style.opacity = '';
+          btn.style.filter = '';
+          btn.style.animation = settings.waveEffect ? '' : 'none';
+          
+          // Restore proper colors for static mode
+          if (!settings.waveEffect) {
+            btn.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+            btn.style.borderColor = settings.staticColor;
+          }
+        });
+        
+        // Reset ALL speed options and their wrappers
+        document.querySelectorAll('.speed-option').forEach(option => {
+          option.classList.remove('greyed-out');
+          option.style.opacity = '';
+          option.style.filter = '';
+          option.style.animation = '';
+          option.style.backgroundColor = '';
+          option.style.color = '';
+          option.style.borderColor = '';
+        });
+        
+        document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
+          wrapper.classList.remove('greyed-out');
+          wrapper.style.opacity = '';
+          wrapper.style.filter = '';
+        });
+        
+        // Reset all history items
+        document.querySelectorAll('#recent-addresses-list .chroma-char').forEach(span => {
+          span.classList.remove('greyed-out');
+          span.style.animation = '';
+          span.style.opacity = '';
+          span.style.filter = '';
+          span.style.color = '';
+        });
+        
+        // Reset token names
+        document.querySelectorAll('.token-name').forEach(tokenName => {
+          tokenName.classList.remove('greyed-out');
+          tokenName.style.opacity = '';
+          tokenName.style.filter = '';
+          if (!settings.waveEffect) {
+            tokenName.style.color = settings.staticColor;
+          } else {
+            tokenName.style.color = '';
+          }
+        });
+        
+        document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
+          span.classList.remove('greyed-out');
+          span.style.animation = '';
+          span.style.opacity = '';
+          span.style.filter = '';
+          span.style.color = '';
+        });
+        
+        // Reset containers
+        document.getElementById('color-picker-container').classList.remove('greyed-out');
+        document.getElementById('color-picker-container').style.opacity = '';
+        document.getElementById('color-picker-container').style.filter = '';
+        
+        document.getElementById('speed-selector-container').classList.remove('greyed-out');
+        document.getElementById('speed-selector-container').style.opacity = '';
+        document.getElementById('speed-selector-container').style.filter = '';
+        
+        document.querySelectorAll('.site-button-group').forEach(group => {
+          group.classList.remove('greyed-out');
+          group.style.opacity = '';
+          group.style.filter = '';
+        });
+        
+        document.querySelector('.recent-section').classList.remove('greyed-out');
+        document.querySelector('.recent-section').style.opacity = '';
+        document.querySelector('.recent-section').style.filter = '';
+        
+        // Force redraw of all speed buttons to ensure they're properly rendered
+        document.querySelectorAll('.speed-option').forEach(option => {
+          // This forces a browser reflow/repaint
+          void option.offsetWidth;
+        });
+        
+        // Re-apply effect styles based on current mode
+        updateEffectIndicator(settings);
+        
+        // If wave effect is enabled, restart animations for sync
+        if (settings.waveEffect) {
+          restartAllAnimations();
+        }
+      } else {
+        // OFF state
+        statusIndicator.innerHTML = '<span>OFF</span>';
+        statusIndicator.classList.remove('active');
+        statusIndicator.classList.add('inactive');
+        statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+        statusIndicator.style.color = '#ff0000';
+        statusIndicator.style.borderColor = '#ff0000';
+        
+        // Apply greyed-out styling for immediate feedback
+        effectIndicator.classList.add('greyed-out');
+        // Also set direct styles
+        effectIndicator.style.opacity = '0.4';
+        effectIndicator.style.filter = 'grayscale(70%)';
+        
+        // For WAVE button, we need to ensure the animation is disabled
+        if (effectIndicator.classList.contains('wave-active')) {
+          effectIndicator.style.animation = 'none';
+          effectIndicator.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
+          effectIndicator.style.color = '#888';
+          effectIndicator.style.borderColor = '#888';
+        }
+        
+        // Apply greyed-out to title
+        titleText.classList.add('greyed-out');
+        titleText.style.opacity = '0.4';
+        titleText.style.filter = 'grayscale(70%)';
+        
+        // If title has wave spans, disable their animations too
+        const spans = titleText.querySelectorAll('.chroma-char, .static-char');
+        spans.forEach(span => {
+          span.style.animation = 'none';
+          span.style.opacity = '0.4';
+          span.style.filter = 'grayscale(70%)';
+          span.style.color = '#888'; // Grey color
+        });
+        
+        // Disable animations on active site buttons
+        document.querySelectorAll('.site-button.active').forEach(btn => {
+          btn.classList.add('greyed-out');
+          btn.style.opacity = '0.4';
+          btn.style.filter = 'grayscale(70%)';
+          btn.style.animation = 'none';
+          btn.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
+          btn.style.borderColor = '#888';
+        });
+        
+        // Disable animations on ALL speed options
+        document.querySelectorAll('.speed-option').forEach(option => {
+          option.classList.add('greyed-out');
+          option.style.opacity = '0.4';
+          option.style.filter = 'grayscale(70%)';
+          option.style.animation = 'none';
+          option.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
+          option.style.color = '#888';
+          option.style.borderColor = '#888';
+        });
+        
+        // Also grey out the speed button wrappers
+        document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
+          wrapper.classList.add('greyed-out');
+          wrapper.style.opacity = '0.4';
+          wrapper.style.filter = 'grayscale(70%)';
+        });
+        
+        // Disable animations in history section
+        document.querySelectorAll('#recent-addresses-list .chroma-char').forEach(span => {
+          span.classList.add('greyed-out');
+          span.style.animation = 'none';
+          span.style.opacity = '0.4';
+          span.style.filter = 'grayscale(70%)';
+          span.style.color = '#888';
+        });
+        
+        // Disable animations for token names
+        document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
+          span.classList.add('greyed-out');
+          span.style.animation = 'none';
+          span.style.opacity = '0.4';
+          span.style.filter = 'grayscale(70%)';
+          span.style.color = '#888';
+        });
+        
+        document.getElementById('color-picker-container').classList.add('greyed-out');
+        document.getElementById('speed-selector-container').classList.add('greyed-out');
+        document.querySelectorAll('.site-button-group').forEach(group => {
+          group.classList.add('greyed-out');
+        });
+        document.querySelector('.recent-section').classList.add('greyed-out');
+      }
+      
+      // Save settings and update UI properly
+      saveSettings(settings);
+    }
+    
     // Effect indicator click handler (WAVE/FAST/STATIC toggle)
     const effectWrapper = document.querySelector('.toggle-container:first-child .button-wrapper');
+    const effectIndicatorElement = document.getElementById('effect-indicator');
     
+    // Direct click handler for the effect indicator (higher priority)
+    if (effectIndicatorElement) {
+      effectIndicatorElement.addEventListener('click', function(event) {
+        // Only allow clicking if extension is active
+        if (!isExtensionActive) return;
+        
+        // Prevent event bubbling to avoid triggering the wrapper's handler too
+        event.stopPropagation();
+        
+        // Handle the state transition
+        handleEffectToggle(settings);
+      });
+    }
+    
+    // Wrapper click handler (lower priority, backup)
     if (effectWrapper) {
-      // Add click handler to both the wrapper and the effect indicator
-      [effectWrapper, document.getElementById('effect-indicator')].forEach(element => {
-        if (element) {
-          element.addEventListener('click', function(event) {
-            // Only allow clicking if extension is active
-            if (!isExtensionActive) return;
-            
-            // Stop event propagation to prevent double handling
-            event.stopPropagation();
-            
-            // Rotate through the three states: WAVE -> FAST -> STATIC -> WAVE
-            if (settings.waveEffect) {
-              if (!settings.fastMode) {
-                // Change from WAVE to FAST (still wave effect, but with fast speed)
-                settings.fastMode = true;
-                // Keep waveEffect as true
-              } else {
-                // Change from FAST to STATIC
-                settings.waveEffect = false;
-                settings.fastMode = false;
-              }
-            } else {
-              // Change from STATIC to WAVE
-              settings.waveEffect = true;
-              settings.fastMode = false;
-            }
-            
-            // Update flags for immediate response
-            isWaveEffect = settings.waveEffect;
-            isFastMode = settings.fastMode;
-            
-            // Update UI immediately
-            updateEffectIndicator(settings);
-            
-            // If wave effect is enabled, restart animations
-            if (settings.waveEffect) {
-              // Apply animation speed based on fast mode setting
-              const animSpeed = settings.fastMode ? 'fast' : 'medium';
-              applyAnimationSpeed(animSpeed);
-              
-              restartAllAnimations();
-            }
-            
-            // Save settings
-            saveSettings(settings);
-            
-            // Send message to background script to update content scripts
-            chrome.runtime.sendMessage({
-              action: 'updateEffectType',
-              waveEffect: settings.waveEffect,
-              staticColor: settings.staticColor,
-              fastMode: settings.fastMode
-            });
-            
-            // Mark for refresh to ensure content scripts are updated
-            refreshNeeded = true;
-            showRefreshNotification();
-          });
+      effectWrapper.addEventListener('click', function(event) {
+        // Only allow clicking if extension is active and the click is on the wrapper (not the button)
+        if (!isExtensionActive) return;
+        
+        // Only trigger if the click was directly on the wrapper (not bubbled up)
+        if (event.target === this) {
+          handleEffectToggle(settings);
         }
       });
     }
     
     // Find the ON/OFF button wrapper more reliably
     const statusWrapper = document.querySelector('.toggle-container:nth-child(2) .button-wrapper');
+    const statusIndicatorElement = document.getElementById('status-indicator');
     
+    // Direct click handler for the status indicator (higher priority)
+    if (statusIndicatorElement) {
+      statusIndicatorElement.addEventListener('click', function(event) {
+        // Prevent event bubbling to avoid triggering the wrapper's handler too
+        event.stopPropagation();
+        
+        // Handle the state transition
+        handleOnOffToggle(settings);
+      });
+    }
+    
+    // Wrapper click handler (lower priority, backup)
     if (statusWrapper) {
-      // Add click handler to both the wrapper and the status indicator
-      [statusWrapper, document.getElementById('status-indicator')].forEach(element => {
-        if (element) {
-          element.addEventListener('click', function(event) {
-            console.log('ON/OFF button clicked, current state:', settings.extensionActive);
-            
-            // Stop event propagation to prevent double handling
-            event.stopPropagation();
-            
-            // Toggle extension active state
-            settings.extensionActive = !settings.extensionActive;
-            isExtensionActive = settings.extensionActive;
-            
-            // Update the UI immediately for responsive feel
-            if (settings.extensionActive) {
-              // ON state
-              statusIndicator.innerHTML = '<span>ON</span>';
-              statusIndicator.classList.remove('inactive');
-              statusIndicator.classList.add('active');
-              statusIndicator.style.backgroundColor = 'rgba(0, 204, 0, 0.2)';
-              statusIndicator.style.color = '#00cc00';
-              statusIndicator.style.borderColor = '#00cc00';
-              
-              // COMPLETE RESET: Remove greyed-out styling from all UI elements
-              
-              // Reset effect indicator
-              effectIndicator.classList.remove('greyed-out');
-              effectIndicator.style.opacity = '';
-              effectIndicator.style.filter = '';
-              effectIndicator.style.animation = '';
-              effectIndicator.style.backgroundColor = '';
-              effectIndicator.style.color = '';
-              effectIndicator.style.borderColor = '';
-              
-              // Reset title
-              titleText.classList.remove('greyed-out');
-              titleText.style.opacity = '';
-              titleText.style.filter = '';
-              
-              // Reset all spans in title
-              titleText.querySelectorAll('.chroma-char, .static-char').forEach(span => {
-                span.classList.remove('greyed-out');
-                span.style.animation = '';
-                span.style.opacity = '';
-                span.style.filter = '';
-                span.style.color = '';
-              });
-              
-              // Reset ALL site buttons, not just active ones
-              document.querySelectorAll('.site-button').forEach(btn => {
-                btn.classList.remove('greyed-out');
-                btn.style.opacity = '';
-                btn.style.filter = '';
-              });
-              
-              // Reset active site button specifically
-              document.querySelectorAll('.site-button.active').forEach(btn => {
-                btn.classList.remove('greyed-out');
-                btn.style.opacity = '';
-                btn.style.filter = '';
-                btn.style.animation = settings.waveEffect ? '' : 'none';
-                
-                // Restore proper colors for static mode
-                if (!settings.waveEffect) {
-                  btn.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-                  btn.style.borderColor = settings.staticColor;
-                }
-              });
-              
-              // Reset ALL speed options and their wrappers
-              document.querySelectorAll('.speed-option').forEach(option => {
-                option.classList.remove('greyed-out');
-                option.style.opacity = '';
-                option.style.filter = '';
-                option.style.animation = '';
-                option.style.backgroundColor = '';
-                option.style.color = '';
-                option.style.borderColor = '';
-              });
-              
-              document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
-                wrapper.classList.remove('greyed-out');
-                wrapper.style.opacity = '';
-                wrapper.style.filter = '';
-              });
-              
-              // Reset all history items
-              document.querySelectorAll('#recent-addresses-list .chroma-char').forEach(span => {
-                span.classList.remove('greyed-out');
-                span.style.animation = '';
-                span.style.opacity = '';
-                span.style.filter = '';
-                span.style.color = '';
-              });
-              
-              // Reset token names
-              document.querySelectorAll('.token-name').forEach(tokenName => {
-                tokenName.classList.remove('greyed-out');
-                tokenName.style.opacity = '';
-                tokenName.style.filter = '';
-                if (!settings.waveEffect) {
-                  tokenName.style.color = settings.staticColor;
-                } else {
-                  tokenName.style.color = '';
-                }
-              });
-              
-              document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
-                span.classList.remove('greyed-out');
-                span.style.animation = '';
-                span.style.opacity = '';
-                span.style.filter = '';
-                span.style.color = '';
-              });
-              
-              // Reset containers
-              document.getElementById('color-picker-container').classList.remove('greyed-out');
-              document.getElementById('color-picker-container').style.opacity = '';
-              document.getElementById('color-picker-container').style.filter = '';
-              
-              document.getElementById('speed-selector-container').classList.remove('greyed-out');
-              document.getElementById('speed-selector-container').style.opacity = '';
-              document.getElementById('speed-selector-container').style.filter = '';
-              
-              document.querySelectorAll('.site-button-group').forEach(group => {
-                group.classList.remove('greyed-out');
-                group.style.opacity = '';
-                group.style.filter = '';
-              });
-              
-              document.querySelector('.recent-section').classList.remove('greyed-out');
-              document.querySelector('.recent-section').style.opacity = '';
-              document.querySelector('.recent-section').style.filter = '';
-              
-              // Force redraw of all speed buttons to ensure they're properly rendered
-              document.querySelectorAll('.speed-option').forEach(option => {
-                // This forces a browser reflow/repaint
-                void option.offsetWidth;
-              });
-              
-              // Re-apply effect styles based on current mode
-              updateEffectIndicator(settings);
-              
-              // If wave effect is enabled, restart animations for sync
-              if (settings.waveEffect) {
-                restartAllAnimations();
-              }
-            } else {
-              // OFF state
-              statusIndicator.innerHTML = '<span>OFF</span>';
-              statusIndicator.classList.remove('active');
-              statusIndicator.classList.add('inactive');
-              statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
-              statusIndicator.style.color = '#ff0000';
-              statusIndicator.style.borderColor = '#ff0000';
-              
-              // Apply greyed-out styling for immediate feedback
-              effectIndicator.classList.add('greyed-out');
-              // Also set direct styles
-              effectIndicator.style.opacity = '0.4';
-              effectIndicator.style.filter = 'grayscale(70%)';
-              
-              // For WAVE button, we need to ensure the animation is disabled
-              if (effectIndicator.classList.contains('wave-active')) {
-                effectIndicator.style.animation = 'none';
-                effectIndicator.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-                effectIndicator.style.color = '#888';
-                effectIndicator.style.borderColor = '#888';
-              }
-              
-              // Apply greyed-out to title
-              titleText.classList.add('greyed-out');
-              titleText.style.opacity = '0.4';
-              titleText.style.filter = 'grayscale(70%)';
-              
-              // If title has wave spans, disable their animations too
-              const spans = titleText.querySelectorAll('.chroma-char, .static-char');
-              spans.forEach(span => {
-                span.style.animation = 'none';
-                span.style.opacity = '0.4';
-                span.style.filter = 'grayscale(70%)';
-                span.style.color = '#888'; // Grey color
-              });
-              
-              // Disable animations on active site buttons
-              document.querySelectorAll('.site-button.active').forEach(btn => {
-                btn.classList.add('greyed-out');
-                btn.style.opacity = '0.4';
-                btn.style.filter = 'grayscale(70%)';
-                btn.style.animation = 'none';
-                btn.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-                btn.style.borderColor = '#888';
-              });
-              
-              // Disable animations on ALL speed options
-              document.querySelectorAll('.speed-option').forEach(option => {
-                option.classList.add('greyed-out');
-                option.style.opacity = '0.4';
-                option.style.filter = 'grayscale(70%)';
-                option.style.animation = 'none';
-                option.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-                option.style.color = '#888';
-                option.style.borderColor = '#888';
-              });
-              
-              // Also grey out the speed button wrappers
-              document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
-                wrapper.classList.add('greyed-out');
-                wrapper.style.opacity = '0.4';
-                wrapper.style.filter = 'grayscale(70%)';
-              });
-              
-              // Disable animations in history section
-              document.querySelectorAll('#recent-addresses-list .chroma-char').forEach(span => {
-                span.classList.add('greyed-out');
-                span.style.animation = 'none';
-                span.style.opacity = '0.4';
-                span.style.filter = 'grayscale(70%)';
-                span.style.color = '#888';
-              });
-              
-              // Disable animations for token names
-              document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
-                span.classList.add('greyed-out');
-                span.style.animation = 'none';
-                span.style.opacity = '0.4';
-                span.style.filter = 'grayscale(70%)';
-                span.style.color = '#888';
-              });
-              
-              document.getElementById('color-picker-container').classList.add('greyed-out');
-              document.getElementById('speed-selector-container').classList.add('greyed-out');
-              document.querySelectorAll('.site-button-group').forEach(group => {
-                group.classList.add('greyed-out');
-              });
-              document.querySelector('.recent-section').classList.add('greyed-out');
-            }
-            
-            // Save settings and update UI properly
-            saveSettings(settings);
-          });
+      statusWrapper.addEventListener('click', function(event) {
+        // Only trigger if the click was directly on the wrapper (not bubbled up)
+        if (event.target === this) {
+          handleOnOffToggle(settings);
         }
       });
     } else {

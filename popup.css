@@ -197,6 +197,8 @@ h1.wave-text {
   min-width: 58px;
   text-align: center;
   position: relative; /* Add positioning context */
+  pointer-events: auto !important; /* Ensure all buttons receive clicks */
+  cursor: pointer !important;
 }
 
 /* Make status indicators clickable */
@@ -214,6 +216,8 @@ h1.wave-text {
   -moz-user-select: none !important;
   -ms-user-select: none !important;
   user-select: none !important;
+  position: relative; /* Ensure span is positioned relative to parent */
+  z-index: 1; /* Keep text visually above background */
 }
 
 /* Target both status indicators to ensure consistent styling */
@@ -221,6 +225,7 @@ h1.wave-text {
 #effect-indicator.clickable {
   cursor: pointer !important;
   transition: all 0.2s ease;
+  pointer-events: auto !important;
 }
 
 /* Override potentially problematic properties on both indicators */
@@ -254,10 +259,12 @@ h1.wave-text {
 #effect-indicator.wave-active, 
 #effect-indicator.fast-mode {
   cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 #effect-indicator.static-active {
   cursor: pointer !important;
+  pointer-events: auto !important;
 }
 
 #effect-indicator:hover {
@@ -273,7 +280,6 @@ h1.wave-text {
   -moz-user-select: none !important;
   -ms-user-select: none !important;
   user-select: none !important;
-  pointer-events: auto !important;
 }
 
 /* Ensure the wrapper passes clicks to the button */
@@ -281,6 +287,7 @@ h1.wave-text {
   display: inline-block;
   cursor: pointer !important;
   position: relative;
+  pointer-events: auto !important;
 }
 
 /* Make sure click events reach the wrapper */
@@ -298,6 +305,7 @@ h1.wave-text {
   -moz-user-drag: none;
   -o-user-drag: none;
   user-drag: none;
+  pointer-events: auto !important;
 }
 
 /* Active state (ON) */
