@@ -67,15 +67,20 @@ body {
 
 /* Special styling for Discord refresh notification */
 .status-banner.refresh-required.discord-refresh {
-  cursor: default !important;
-  pointer-events: none;
+  cursor: pointer !important; /* Make it clickable */
+  pointer-events: auto; /* Allow pointer events */
 }
 
 .status-banner.refresh-required.discord-refresh:hover {
-  filter: none;
-  transform: none;
+  filter: brightness(1.2); /* Match other hover effects */
+  transform: scale(1.02);
 }
 
+.status-banner.refresh-required.discord-refresh:active {
+  transform: scale(0.98);
+}
+
+/* Regular refresh notification hover effects */
 .status-banner.refresh-required:hover {
   filter: brightness(1.2);
   transform: scale(1.02);

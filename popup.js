@@ -874,14 +874,57 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if the current tab is Discord.com
     checkIfDiscord(isDiscord => {
       if (isDiscord) {
-        // Discord-specific behavior - non-clickable banner
-        statusMessage.innerHTML = 'Refresh Required<br><span class="discord-note">This may take a moment on discord.com.</span>';
+        // Discord-specific behavior - still clickable but with warning
+        statusMessage.innerHTML = 'Click to Refresh<br><span class="discord-note">This may take a moment on discord.com.</span>';
         
-        // Add Discord-specific class
+        // Add Discord-specific class but keep it clickable
         statusBanner.classList.add('discord-refresh');
         
-        // Remove click handler for Discord
-        statusBanner.onclick = null;
+        // Add click handler for Discord - same as regular sites
+        statusBanner.onclick = function() {
+          // Change message to indicate refreshing is in progress
+          statusMessage.textContent = 'Refreshing...';
+          
+          // Add a temporary class to disable hover effects during refresh
+          statusBanner.classList.add('refreshing');
+          
+          // Send a message to the background script to refresh all tabs with the extension active
+          safelyExecuteChromeAPI(() => {
+            chrome.runtime.sendMessage({ action: 'refreshTabs' }, function(response) {
+              try {
+                // Check for runtime error first
+                if (chrome.runtime.lastError) {
+                  console.log("Error refreshing tabs:", chrome.runtime.lastError.message);
+                  // Reset banner after a short delay
+                  setTimeout(resetStatusBanner, 2000);
+                  return;
+                }
+                
+                if (response && response.success) {
+                  console.log('Tabs refreshed successfully');
+                  
+                  // First save the refresh state to false so it doesn't show refresh banner again
+                  safelyExecuteChromeAPI(() => {
+                    chrome.storage.local.set({ refreshNeeded: false }, function() {
+                      try {
+                        // Perform a soft refresh instead of a full page reload
+                        softRefresh();
+                      } catch (error) {
+                        console.warn('Error in softRefresh:', error);
+                        // Reset banner after a short delay as a fallback
+                        setTimeout(resetStatusBanner, 2000);
+                      }
+                    });
+                  });
+                }
+              } catch (error) {
+                console.warn('Error in refresh response handler:', error);
+                // Reset banner after a short delay as a fallback
+                setTimeout(resetStatusBanner, 2000);
+              }
+            });
+          });
+        };
       } else {
         // Normal behavior for all other sites
         statusMessage.textContent = 'Click to Refresh';
