@@ -8,45 +8,45 @@
 </head>
 <body>
   <div class="container">
-    <button id="status-banner" class="status-banner ready">
+    <div id="status-banner" class="status-banner ready">
       <span id="status-message">Ready</span>
-    </button>
+    </div>
     
     <header>
       <div class="header-buttons left-buttons">
-        <button id="tip-dev-button" class="tip-dev-button">Tip&nbsp;Dev</button>
+        <button id="tip-dev-button" class="tip-dev-button"><span>Tip&nbsp;Dev</span></button>
       </div>
       <h1 id="title-text">Can Opener</h1>
       <div class="header-buttons">
-        <button id="website-button" class="website-button">Website</button>
+        <button id="website-button" class="website-button"><span>Website</span></button>
       </div>
     </header>
     
     <div class="settings-section">
       <div class="setting-row">
         <div class="toggle-container">
-          <button class="button-wrapper">
+          <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
             <div id="effect-indicator" class="status-indicator active clickable">WAVE</div>
-          </button>
+          </div>
           <div id="color-picker-container" class="color-picker-container" style="display: none; margin-left: 10px;">
             <input type="color" id="static-color" value="#8C00FF">
           </div>
           <div id="speed-selector-container" class="speed-selector" style="margin-left: 10px;">
-            <button class="button-wrapper" data-speed="slow">
+            <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
               <div class="speed-option" data-speed="slow">1</div>
-            </button>
-            <button class="button-wrapper" data-speed="medium">
+            </div>
+            <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
               <div class="speed-option active" data-speed="medium">2</div>
-            </button>
-            <button class="button-wrapper" data-speed="fast">
+            </div>
+            <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
               <div class="speed-option" data-speed="fast">3</div>
-            </button>
+            </div>
           </div>
         </div>
         <div class="toggle-container" style="margin-left: 15px;">
-          <button class="button-wrapper">
+          <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
             <div id="status-indicator" class="status-indicator active clickable">ON</div>
-          </button>
+          </div>
         </div>
       </div>
       
@@ -54,56 +54,56 @@
         <div class="site-buttons-container">
           <div class="site-button-group">
             <div class="site-name-label" id="axiom-label">Axiom</div>
-            <button class="button-wrapper" data-value="axiom">
+            <div class="button-wrapper" style="cursor: pointer !important;">
               <div class="site-button active" data-value="axiom" data-logo="axiom-logo.png" data-name="Axiom">
-                <img src="axiom-logo.png" class="site-button-logo" alt="Axiom">
+                <img src="axiom-logo.png" class="site-button-logo">
               </div>
-            </button>
+            </div>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="bullx-label" style="display: none;">BullX</div>
-            <button class="button-wrapper" data-value="bullx">
+            <div class="button-wrapper" style="cursor: pointer !important;">
               <div class="site-button" data-value="bullx" data-logo="bullx-logo.png" data-name="BullX">
-                <img src="bullx-logo.png" class="site-button-logo" alt="BullX">
+                <img src="bullx-logo.png" class="site-button-logo">
               </div>
-            </button>
+            </div>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="photon-label" style="display: none;">Photon</div>
-            <button class="button-wrapper" data-value="photon">
+            <div class="button-wrapper" style="cursor: pointer !important;">
               <div class="site-button" data-value="photon" data-logo="photon-logo.png" data-name="Photon">
-                <img src="photon-logo.png" class="site-button-logo" alt="Photon">
+                <img src="photon-logo.png" class="site-button-logo">
               </div>
-            </button>
+            </div>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="gmgn-label" style="display: none;">GMGN</div>
-            <button class="button-wrapper" data-value="gmgn">
+            <div class="button-wrapper" style="cursor: pointer !important;">
               <div class="site-button" data-value="gmgn" data-logo="gmgn-logo.png" data-name="GMGN">
-                <img src="gmgn-logo.png" class="site-button-logo" alt="GMGN">
+                <img src="gmgn-logo.png" class="site-button-logo">
               </div>
-            </button>
+            </div>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="dexscreener-label" style="display: none;">DEX</div>
-            <button class="button-wrapper" data-value="dexscreener">
+            <div class="button-wrapper" style="cursor: pointer !important;">
               <div class="site-button" data-value="dexscreener" data-logo="dexscreener-logo.png" data-name="DEX">
-                <img src="dexscreener-logo.png" class="site-button-logo" alt="DEX">
+                <img src="dexscreener-logo.png" class="site-button-logo">
               </div>
-            </button>
+            </div>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="birdeye-label" style="display: none;">Birdeye</div>
-            <button class="button-wrapper" data-value="birdeye">
+            <div class="button-wrapper" style="cursor: pointer !important;">
               <div class="site-button" data-value="birdeye" data-logo="birdeye-logo.png" data-name="Birdeye">
-                <img src="birdeye-logo.png" class="site-button-logo" alt="Birdeye">
+                <img src="birdeye-logo.png" class="site-button-logo">
               </div>
-            </button>
+            </div>
           </div>
           
           <!-- Hidden select for storing the value -->

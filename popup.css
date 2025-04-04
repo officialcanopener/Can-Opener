@@ -768,9 +768,9 @@ h2 {
 
 /* Make speed-option buttons glow on hover without border */
 .speed-selector .button-wrapper:hover .speed-option:not(.active) {
-  background-color: rgba(80, 80, 80, 0.6);
+  background-color: rgba(80, 80, 80, 0.4);
   border-color: transparent;
-  filter: brightness(1.2);
+  filter: brightness(1.1);
 }
 
 .speed-selector .button-wrapper:hover {
@@ -796,9 +796,9 @@ h2 {
 
 /* Make site-button highlight on hover in a way that follows its shape */
 .site-button-group .button-wrapper:hover .site-button:not(.active) {
-  background-color: rgba(80, 80, 80, 0.6);
+  background-color: rgba(80, 80, 80, 0.4);
   border-color: transparent;
-  filter: brightness(1.2);
+  filter: brightness(1.1);
 }
 
 .site-button-group .button-wrapper:hover {
@@ -1473,7 +1473,7 @@ h1#title-text.greyed-out {
 
 .tip-dev-button:hover, .website-button:hover {
   background-color: #444;
-  filter: brightness(1.25);
+  filter: brightness(1.15);
   border-color: transparent;
 }
 
@@ -1509,4 +1509,81 @@ h1#title-text.greyed-out {
 .toggle-container, .site-buttons-container {
   position: relative;
   z-index: 1;
+}
+
+/* Make text inside buttons grow on hover (like logos) */
+/* Status banner text */
+.status-banner:hover #status-message {
+  transform: scale(1.05);
+}
+
+/* Button text in all buttons */
+.tip-dev-button:hover span, .website-button:hover span {
+  display: inline-block;
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+/* Status indicators (ON/OFF and WAVE/STATIC) */
+.button-wrapper:hover .status-indicator {
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+/* Make sure active wave indicator maintains its animation but still scales */
+.button-wrapper:hover .status-indicator.wave-active {
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+/* Ensure the status-indicator animation doesn't reset on hover */
+.status-indicator.wave-active {
+  animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  border-color: #ff00ff;
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, color, border-color;
+}
+
+/* Speed option numbers */
+.speed-selector .button-wrapper:hover .speed-option:not(.active) {
+  background-color: rgba(80, 80, 80, 0.4);
+  border-color: transparent;
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+/* Make active speed options also scale but keep their color animation */
+.speed-selector .button-wrapper:hover .speed-option.active {
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+/* Ensure text in banners enlarges */
+.status-banner.refresh-required:hover #status-message {
+  display: inline-block;
+  transform: scale(1.05);
+  transition: transform 0.1s ease-out;
+}
+
+/* Make sure the Discord note doesn't scale too much */
+.status-banner.refresh-required:hover .discord-note {
+  display: block;
+  transform: scale(1.02);
+}
+
+/* Add transition properties to elements that will be scaled */
+#status-message, 
+.tip-dev-button span, 
+.website-button span,
+.status-indicator,
+.speed-option {
+  transition: transform 0.1s ease-out;
+  display: inline-block;
 } 
