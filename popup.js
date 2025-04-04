@@ -1495,7 +1495,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       if (isScrollView) {
-        // Create horizontal scroll view
+        // Create horizontal scroll view with "train" effect
         createScrollView(recentAddresses, settings);
       } else {
         // Create traditional list view
@@ -1504,16 +1504,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Create horizontal scroll view
+  // Create horizontal scroll view with "train" effect
   function createScrollView(addresses, settings) {
     // Create scroll container
     const scrollContainer = document.createElement('div');
     scrollContainer.className = 'scroll-container';
     
-    // Create items in a horizontal row
-    addresses.forEach((item, index) => {
-      const addressItem = document.createElement('div');
-      addressItem.className = 'address-item scroll-item';
+    // Variables to track current token
+    let currentIndex = 0;
+    let intervalId = null;
+    
+    // Function to create a token item in the same style as list view
+    function createTokenItem(item) {
+      const tokenItem = document.createElement('div');
+      tokenItem.className = 'token-train-item';
       
       const addressLink = document.createElement('a');
       addressLink.className = 'address-link';
@@ -1591,77 +1595,127 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       tokenContainer.appendChild(tokenInfo);
-      addressLink.appendChild(tokenContainer);
       
       // Add timestamp
       const timestamp = document.createElement('div');
       timestamp.className = 'timestamp';
       timestamp.textContent = formatRelativeTime(item.timestamp);
       
-      addressItem.appendChild(addressLink);
-      addressItem.appendChild(timestamp);
+      addressLink.appendChild(tokenContainer);
+      tokenItem.appendChild(addressLink);
+      tokenItem.appendChild(timestamp);
       
       // Add click handler to open the URL
-      addressItem.addEventListener('click', function() {
+      tokenItem.addEventListener('click', function() {
         window.open(addressLink.href, '_blank');
       });
       
-      scrollContainer.appendChild(addressItem);
-    });
+      return tokenItem;
+    }
+    
+    // Function to show a specific token
+    function showToken(index) {
+      // Remove all existing tokens
+      const existingTokens = scrollContainer.querySelectorAll('.token-train-item');
+      existingTokens.forEach(token => {
+        if (token.classList.contains('active')) {
+          // Add slide out animation to the current active token
+          token.classList.add('slide-out-left');
+          token.classList.remove('active');
+          
+          // Remove after animation completes
+          setTimeout(() => {
+            if (scrollContainer.contains(token)) {
+              scrollContainer.removeChild(token);
+            }
+          }, 500);
+        } else {
+          // Remove any other tokens immediately
+          if (scrollContainer.contains(token)) {
+            scrollContainer.removeChild(token);
+          }
+        }
+      });
+      
+      // Create new token item
+      const newToken = createTokenItem(addresses[index]);
+      newToken.classList.add('next');
+      scrollContainer.appendChild(newToken);
+      
+      // Force reflow to ensure animation works
+      void newToken.offsetWidth;
+      
+      // Add slide in animation
+      newToken.classList.add('slide-in-right');
+      newToken.classList.remove('next');
+      newToken.classList.add('active');
+    }
+    
+    // Function to show the next token
+    function showNextToken() {
+      currentIndex = (currentIndex + 1) % addresses.length;
+      showToken(currentIndex);
+    }
+    
+    // Add initial token
+    if (addresses.length > 0) {
+      showToken(0);
+      
+      // Start auto-scrolling
+      intervalId = setInterval(showNextToken, 3000);
+    }
     
     // Add scroll container to DOM
     recentAddressesList.appendChild(scrollContainer);
     
-    // Add smooth scrolling with mouse wheel
-    scrollContainer.addEventListener('wheel', function(e) {
-      e.preventDefault();
-      scrollContainer.scrollLeft += e.deltaY;
-    }, { passive: false });
-    
-    // Add touch scrolling support
-    let isScrolling = false;
-    let startX;
-    let scrollLeft;
-    
-    scrollContainer.addEventListener('touchstart', function(e) {
-      isScrolling = true;
-      startX = e.touches[0].clientX;
-      scrollLeft = scrollContainer.scrollLeft;
-    }, { passive: true });
-    
-    scrollContainer.addEventListener('touchmove', function(e) {
-      if (!isScrolling) return;
-      const x = e.touches[0].clientX;
-      const deltaX = startX - x;
-      scrollContainer.scrollLeft = scrollLeft + deltaX;
-    }, { passive: true });
-    
-    scrollContainer.addEventListener('touchend', function() {
-      isScrolling = false;
-    }, { passive: true });
-    
-    // Add mouse drag scrolling
-    scrollContainer.addEventListener('mousedown', function(e) {
-      isScrolling = true;
-      startX = e.clientX;
-      scrollLeft = scrollContainer.scrollLeft;
-      
-      document.addEventListener('mousemove', mouseMoveHandler);
-      document.addEventListener('mouseup', mouseUpHandler);
+    // Add pause/resume on hover
+    scrollContainer.addEventListener('mouseenter', function() {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
     });
     
-    function mouseMoveHandler(e) {
-      if (!isScrolling) return;
-      const x = e.clientX;
-      const deltaX = startX - x;
-      scrollContainer.scrollLeft = scrollLeft + deltaX;
-    }
+    scrollContainer.addEventListener('mouseleave', function() {
+      if (!intervalId) {
+        intervalId = setInterval(showNextToken, 3000);
+      }
+    });
     
-    function mouseUpHandler() {
-      isScrolling = false;
-      document.removeEventListener('mousemove', mouseMoveHandler);
-      document.removeEventListener('mouseup', mouseUpHandler);
-    }
+    // Add manual navigation with click
+    scrollContainer.addEventListener('click', function(e) {
+      // Only trigger if clicking directly on the container (not on a token)
+      if (e.target === scrollContainer) {
+        showNextToken();
+      }
+    });
+    
+    // Manual navigation with keyboard
+    document.addEventListener('keydown', function(e) {
+      // Only handle if the scroll view is active
+      if (recentAddressesList.classList.contains('scroll-view')) {
+        if (e.key === 'ArrowRight') {
+          showNextToken();
+        } else if (e.key === 'ArrowLeft') {
+          currentIndex = (currentIndex - 1 + addresses.length) % addresses.length;
+          showToken(currentIndex);
+        }
+      }
+    });
+    
+    // Clean up interval when view changes
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (!recentAddressesList.classList.contains('scroll-view') && intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }
+      });
+    });
+    
+    observer.observe(recentAddressesList, { attributes: true });
   }
   
   // Create traditional list view
@@ -1733,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         tokenInfo.appendChild(tokenName);
         
-        // Token symbol (no animation)
+        // Token symbol
         const tokenSymbol = document.createElement('div');
         tokenSymbol.className = 'token-symbol';
         tokenSymbol.textContent = item.tokenMetadata.symbol;
