@@ -68,11 +68,12 @@ body {
 /* Regular refresh notification hover effects */
 .status-banner.refresh-required:hover {
   filter: none; /* Remove brightness filter to keep original color */
-  box-shadow: 0 0 8px rgba(255, 165, 0, 0.3); /* Add subtle glow instead of scale */
+  background-color: rgba(255, 165, 0, 0.3);
+  border-color: rgba(255, 165, 0, 0.8);
 }
 
 .status-banner.refresh-required:active {
-  box-shadow: 0 0 4px rgba(255, 165, 0, 0.2); /* Subtle pressed effect */
+  filter: brightness(0.95);
 }
 
 /* Special styling for Discord refresh notification */
@@ -83,11 +84,12 @@ body {
 
 .status-banner.refresh-required.discord-refresh:hover {
   filter: none; /* Remove brightness filter to keep original color */
-  box-shadow: 0 0 8px rgba(255, 165, 0, 0.3); /* Add subtle glow instead of scale */
+  background-color: rgba(255, 165, 0, 0.3);
+  border-color: rgba(255, 165, 0, 0.8);
 }
 
 .status-banner.refresh-required.discord-refresh:active {
-  box-shadow: 0 0 4px rgba(255, 165, 0, 0.2); /* Subtle pressed effect */
+  filter: brightness(0.95);
 }
 
 .status-banner.inactive {
@@ -606,15 +608,17 @@ h2 {
   position: relative;
   cursor: pointer !important;
   transition: all 0.15s ease-out;
+  border: 1px solid transparent;
 }
 
 .address-item:hover {
   filter: brightness(1.2);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: #333;
 }
 
 .address-item:active {
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
+  filter: brightness(0.95);
 }
 
 .address-link {
@@ -739,17 +743,15 @@ h2 {
   padding: 2px; /* Add slight padding to create larger hit area */
   margin: -2px; /* Negative margin to compensate for padding */
   z-index: 2; /* Ensure button wrappers are above other elements */
+  border-radius: inherit; /* Inherit border radius from children */
 }
 
 .button-wrapper:hover {
   filter: brightness(1.25);
-  /* Replace scale with box-shadow to prevent cursor teleporting */
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .button-wrapper:active {
-  /* Replace transform with subtle box-shadow change */
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  filter: brightness(0.95);
   transition: all 0.08s ease-out; /* Even faster for active state */
 }
 
@@ -764,15 +766,18 @@ h2 {
   margin: -3px; /* Compensate for padding */
 }
 
+/* Make speed-option buttons highlight on hover in a way that follows their shape */
+.speed-selector .button-wrapper:hover .speed-option:not(.active) {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: #3a3a3a;
+}
+
 .speed-selector .button-wrapper:hover {
   filter: brightness(1.25);
-  /* Replace scale with box-shadow to prevent cursor teleporting */
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .speed-selector .button-wrapper:active {
-  /* Replace transform with subtle box-shadow change */
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  filter: brightness(0.95);
   transition: all 0.08s ease-out; /* Faster for active state */
 }
 
@@ -785,12 +790,17 @@ h2 {
   padding: 5px; /* Increase padding for a larger hit area */
   margin: -5px; /* Negative margin to compensate for padding */
   z-index: 2; /* Higher z-index to prevent flickering */
+  border-radius: 8px; /* Match the site-button's border radius */
+}
+
+/* Make site-button highlight on hover in a way that follows its shape */
+.site-button-group .button-wrapper:hover .site-button:not(.active) {
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: #3a3a3a;
 }
 
 .site-button-group .button-wrapper:hover {
   filter: brightness(1.25);
-  /* Add box-shadow instead of transform */
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .site-button-group .button-wrapper:hover .site-button-logo {
@@ -800,8 +810,7 @@ h2 {
 }
 
 .site-button-group .button-wrapper:active {
-  /* Replace transform with subtle box-shadow change */
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  filter: brightness(0.95);
   transition: all 0.08s ease-out; /* Even faster for active state */
 }
 
@@ -1449,7 +1458,7 @@ h1#title-text.greyed-out {
   padding: 6px 12px;
   background-color: #333;
   color: #fff;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer !important;
   font-size: 12px;
@@ -1460,26 +1469,15 @@ h1#title-text.greyed-out {
   z-index: 2; /* Higher z-index */
 }
 
-.tip-dev-button:hover {
+.tip-dev-button:hover, .website-button:hover {
   background-color: #444;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
   filter: brightness(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.tip-dev-button:active {
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
-  transition: all 0.08s ease-out; /* Even faster for active state */
-}
-
-.website-button:hover {
-  background-color: #444;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
-  filter: brightness(1.25);
-}
-
-.website-button:active {
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
-  transition: all 0.08s ease-out; /* Even faster for active state */
+.tip-dev-button:active, .website-button:active {
+  filter: brightness(0.95);
+  transition: all 0.08s ease-out;
 }
 
 /* Styling for the Discord note text */
