@@ -61,14 +61,13 @@ body {
   background-color: rgba(255, 165, 0, 0.2);
   color: #ffa500;
   border-color: #ffa500;
-  cursor: pointer !important;
   transition: all 0.2s ease;
 }
 
 /* Special styling for Discord refresh notification */
 .status-banner.refresh-required.discord-refresh {
-  cursor: pointer !important; /* Make it clickable */
-  pointer-events: auto; /* Allow pointer events */
+  /* Remove cursor: pointer !important; */
+  /* Remove pointer-events: auto; */
 }
 
 .status-banner.refresh-required.discord-refresh:hover {
@@ -322,7 +321,6 @@ h1.wave-text {
 
 .slider {
   position: absolute;
-  cursor: pointer;
   top: 0;
   left: 0;
   right: 0;
@@ -913,12 +911,8 @@ h1, h2, h3,
 .site-button-logo,
 .chroma-char,
 .static-char {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  cursor: default;
-  pointer-events: none; /* By default elements don't handle events */
+  cursor: initial !important;
+  pointer-events: initial !important;
 }
 
 /* Critical fix: clear older conflicting rules */
@@ -1532,43 +1526,60 @@ h1#title-text.greyed-out {
   margin-top: 3px;
 }
 
-/* ---------------- CURSOR CONTROL - EXTREME FIX ------------------ */
-/* Remove ALL cursor styling and let the OS handle it naturally */
+/* ---------------- CURSOR CONTROL - NATIVE SEMANTICS ------------------ */
+/* Remove ALL cursor handling and let the browser and OS control it natively */
 
-/* Reset all cursor properties everywhere */
-*, *::before, *::after {
-  cursor: auto !important; /* Use browser default */
+/* Remove all custom cursor styles */
+*, 
+*::before, 
+*::after,
+body, 
+.container, 
+h1, h2, h3, 
+.status-banner,
+.status-indicator,
+.speed-option,
+.setting-label,
+.toggle-label,
+.site-name-label,
+.address-item,
+.address-link,
+.address-text,
+.page-title,
+.timestamp,
+.token-name,
+.token-symbol,
+.site-button,
+.site-button-logo,
+.chroma-char,
+.static-char,
+.tip-dev-button,
+.website-button,
+.slider,
+.toggle,
+#effect-indicator,
+#status-indicator,
+.button-wrapper,
+input[type="color"] {
+  cursor: initial !important;
 }
 
-/* Only control pointer-events for interactivity */
-body, .container {
-  pointer-events: auto;
+/* Remove all pointer-events customization */
+* {
+  pointer-events: initial !important;
 }
 
-/* Interactive elements - ONLY control pointer-events, not cursor */
+/* Use standard button behavior for buttons */
+button, 
 .button-wrapper,
 .status-banner.refresh-required,
 .address-item,
 input[type="color"] {
-  pointer-events: auto;
+  /* Don't specify any cursor property - let the OS/browser decide */
+  /* Don't specify pointer-events - let the browser handle it */
 }
 
-/* Non-interactive elements - ONLY control pointer-events, not cursor */
-.status-indicator,
-.speed-option,
-.site-button,
-.site-button-logo,
-.tip-dev-button,
-.website-button,
-.address-link,
-.address-text,
-.chroma-char,
-.static-char,
-h1, h2, h3, p, span:not(#status-message) {
-  pointer-events: none;
-}
-
-/* Keep visual hover effects */
+/* Keep visual hover effects but remove any cursor or pointer-events styling */
 .button-wrapper:hover {
   filter: brightness(1.25);
   transform: scale(1.05);

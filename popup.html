@@ -8,49 +8,45 @@
 </head>
 <body>
   <div class="container">
-    <div id="status-banner" class="status-banner ready">
+    <button id="status-banner" class="status-banner ready">
       <span id="status-message">Ready</span>
-    </div>
+    </button>
     
     <header>
       <div class="header-buttons left-buttons">
-        <div class="button-wrapper">
-          <button id="tip-dev-button" class="tip-dev-button">Tip&nbsp;Dev</button>
-        </div>
+        <button id="tip-dev-button" class="tip-dev-button">Tip&nbsp;Dev</button>
       </div>
       <h1 id="title-text">Can Opener</h1>
       <div class="header-buttons">
-        <div class="button-wrapper">
-          <button id="website-button" class="website-button">Website</button>
-        </div>
+        <button id="website-button" class="website-button">Website</button>
       </div>
     </header>
     
     <div class="settings-section">
       <div class="setting-row">
         <div class="toggle-container">
-          <div class="button-wrapper">
+          <button class="button-wrapper">
             <div id="effect-indicator" class="status-indicator active clickable">WAVE</div>
-          </div>
+          </button>
           <div id="color-picker-container" class="color-picker-container" style="display: none; margin-left: 10px;">
             <input type="color" id="static-color" value="#8C00FF">
           </div>
           <div id="speed-selector-container" class="speed-selector" style="margin-left: 10px;">
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-speed="slow">
               <div class="speed-option" data-speed="slow">1</div>
-            </div>
-            <div class="button-wrapper">
+            </button>
+            <button class="button-wrapper" data-speed="medium">
               <div class="speed-option active" data-speed="medium">2</div>
-            </div>
-            <div class="button-wrapper">
+            </button>
+            <button class="button-wrapper" data-speed="fast">
               <div class="speed-option" data-speed="fast">3</div>
-            </div>
+            </button>
           </div>
         </div>
         <div class="toggle-container" style="margin-left: 15px;">
-          <div class="button-wrapper">
+          <button class="button-wrapper">
             <div id="status-indicator" class="status-indicator active clickable">ON</div>
-          </div>
+          </button>
         </div>
       </div>
       
@@ -58,56 +54,56 @@
         <div class="site-buttons-container">
           <div class="site-button-group">
             <div class="site-name-label" id="axiom-label">Axiom</div>
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-value="axiom">
               <div class="site-button active" data-value="axiom" data-logo="axiom-logo.png" data-name="Axiom">
-                <img src="axiom-logo.png" class="site-button-logo">
+                <img src="axiom-logo.png" class="site-button-logo" alt="Axiom">
               </div>
-            </div>
+            </button>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="bullx-label" style="display: none;">BullX</div>
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-value="bullx">
               <div class="site-button" data-value="bullx" data-logo="bullx-logo.png" data-name="BullX">
-                <img src="bullx-logo.png" class="site-button-logo">
+                <img src="bullx-logo.png" class="site-button-logo" alt="BullX">
               </div>
-            </div>
+            </button>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="photon-label" style="display: none;">Photon</div>
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-value="photon">
               <div class="site-button" data-value="photon" data-logo="photon-logo.png" data-name="Photon">
-                <img src="photon-logo.png" class="site-button-logo">
+                <img src="photon-logo.png" class="site-button-logo" alt="Photon">
               </div>
-            </div>
+            </button>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="gmgn-label" style="display: none;">GMGN</div>
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-value="gmgn">
               <div class="site-button" data-value="gmgn" data-logo="gmgn-logo.png" data-name="GMGN">
-                <img src="gmgn-logo.png" class="site-button-logo">
+                <img src="gmgn-logo.png" class="site-button-logo" alt="GMGN">
               </div>
-            </div>
+            </button>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="dexscreener-label" style="display: none;">DEX</div>
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-value="dexscreener">
               <div class="site-button" data-value="dexscreener" data-logo="dexscreener-logo.png" data-name="DEX">
-                <img src="dexscreener-logo.png" class="site-button-logo">
+                <img src="dexscreener-logo.png" class="site-button-logo" alt="DEX">
               </div>
-            </div>
+            </button>
           </div>
           
           <div class="site-button-group">
             <div class="site-name-label" id="birdeye-label" style="display: none;">Birdeye</div>
-            <div class="button-wrapper">
+            <button class="button-wrapper" data-value="birdeye">
               <div class="site-button" data-value="birdeye" data-logo="birdeye-logo.png" data-name="Birdeye">
-                <img src="birdeye-logo.png" class="site-button-logo">
+                <img src="birdeye-logo.png" class="site-button-logo" alt="Birdeye">
               </div>
-            </div>
+            </button>
           </div>
           
           <!-- Hidden select for storing the value -->

@@ -252,75 +252,67 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize site buttons
   function initSiteButtons() {
-    // Get all site button wrappers
+    // Add click handlers to site button wrappers
     const siteButtonWrappers = document.querySelectorAll('.site-button-group .button-wrapper');
-    
-    siteButtonWrappers.forEach((wrapper, index) => {
-      // Get the actual site button inside the wrapper
-      const button = wrapper.querySelector('.site-button');
-      
+    siteButtonWrappers.forEach(wrapper => {
       wrapper.addEventListener('click', function() {
-        // Remove active class from all buttons
-        siteButtons.forEach(btn => {
-          btn.classList.remove('active');
-          // Reset styles for all buttons
-          btn.style.animation = '';
-          btn.style.backgroundColor = '';
-          btn.style.borderColor = '';
-        });
+        // Get the site value directly from the button's data-value attribute
+        const value = this.getAttribute('data-value');
+        const button = wrapper.querySelector('.site-button');
         
-        // Add active class to clicked button
-        button.classList.add('active');
-        
-        // Get site value and name from the button
-        const value = button.getAttribute('data-value');
-        const siteName = button.getAttribute('data-name');
-        
-        // Apply appropriate styles based on wave/static mode
-        chrome.storage.local.get('settings', function(data) {
-          const settings = data.settings || defaultSettings;
+        // Only change if this isn't already the selected site
+        if (!button.classList.contains('active')) {
+          // Update the hidden select value
+          tradingSiteSelect.value = value;
           
-          if (!settings.waveEffect) {
-            // Static mode - use the selected color
-            button.style.animation = 'none';
-            button.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-            button.style.borderColor = settings.staticColor;
-          } else {
-            // Wave mode - use the animation
-            button.style.animation = '';
-            button.style.backgroundColor = '';
-            button.style.borderColor = '';
-          }
-        });
-        
-        // Update site labels visibility
-        document.querySelectorAll('.site-name-label').forEach(label => {
-          label.style.display = 'none';
-        });
-        
-        // Show only the selected site's label
-        const selectedLabel = document.getElementById(`${value}-label`);
-        if (selectedLabel) {
-          selectedLabel.style.display = 'block';
+          // Remove active class from all buttons
+          document.querySelectorAll('.site-button').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          // Add active class to this button
+          button.classList.add('active');
+          
+          // Update settings
+          chrome.storage.local.get('settings', function(data) {
+            try {
+              const settings = data.settings || defaultSettings;
+              settings.tradingSite = value;
+              
+              // Save the settings
+              saveSettings(settings);
+              
+              // Update the site buttons to reflect new state
+              updateSiteButtons(settings);
+              
+              // Update site labels
+              document.querySelectorAll('.site-name-label').forEach(label => {
+                label.style.display = 'none';
+              });
+              
+              const selectedLabel = document.getElementById(`${value}-label`);
+              if (selectedLabel) {
+                selectedLabel.style.display = 'block';
+              }
+              
+              // Show refresh notification
+              showRefreshNotification();
+            } catch (error) {
+              console.warn('Error in site button click handler:', error);
+            }
+          });
         }
-        
-        // Update hidden select
-        tradingSiteSelect.value = value;
-        
-        // Trigger change event on select
-        const event = new Event('change', { bubbles: true });
-        tradingSiteSelect.dispatchEvent(event);
       });
     });
   }
   
   // Set up event listeners for settings changes
   function setupEventListeners(settings) {
-    // Find the ON/OFF button wrapper more reliably
-    const statusWrapper = document.querySelector('.toggle-container:nth-child(2) .button-wrapper');
+    // Find the ON/OFF button - now an actual button element
+    const statusButton = document.querySelector('.toggle-container:nth-child(2) .button-wrapper');
     
-    if (statusWrapper) {
-      statusWrapper.addEventListener('click', function() {
+    if (statusButton) {
+      statusButton.addEventListener('click', function() {
         console.log('ON/OFF button clicked, current state:', settings.extensionActive);
         
         // Toggle extension active state
@@ -559,10 +551,14 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('Could not find ON/OFF button wrapper');
     }
     
-    // Wave effect toggle (using the wrapper)
-    const effectWrapper = document.querySelector('.toggle-container:first-child .button-wrapper');
-    if (effectWrapper) {
-      effectWrapper.addEventListener('click', function() {
+    // Find the WAVE/STATIC button - now an actual button element
+    const effectButton = document.querySelector('.toggle-container:first-child .button-wrapper');
+    
+    if (effectButton) {
+      effectButton.addEventListener('click', function() {
+        console.log('WAVE/STATIC button clicked, current state:', settings.waveEffect);
+        
+        // Toggle wave effect state
         settings.waveEffect = !settings.waveEffect;
         isWaveEffect = settings.waveEffect;
         
@@ -880,51 +876,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add Discord-specific class but keep it clickable
         statusBanner.classList.add('discord-refresh');
         
-        // Add click handler for Discord - same as regular sites
-        statusBanner.onclick = function() {
-          // Change message to indicate refreshing is in progress
-          statusMessage.textContent = 'Refreshing...';
-          
-          // Add a temporary class to disable hover effects during refresh
-          statusBanner.classList.add('refreshing');
-          
-          // Send a message to the background script to refresh all tabs with the extension active
-          safelyExecuteChromeAPI(() => {
-            chrome.runtime.sendMessage({ action: 'refreshTabs' }, function(response) {
-              try {
-                // Check for runtime error first
-                if (chrome.runtime.lastError) {
-                  console.log("Error refreshing tabs:", chrome.runtime.lastError.message);
-                  // Reset banner after a short delay
-                  setTimeout(resetStatusBanner, 2000);
-                  return;
-                }
-                
-                if (response && response.success) {
-                  console.log('Tabs refreshed successfully');
-                  
-                  // First save the refresh state to false so it doesn't show refresh banner again
-                  safelyExecuteChromeAPI(() => {
-                    chrome.storage.local.set({ refreshNeeded: false }, function() {
-                      try {
-                        // Perform a soft refresh instead of a full page reload
-                        softRefresh();
-                      } catch (error) {
-                        console.warn('Error in softRefresh:', error);
-                        // Reset banner after a short delay as a fallback
-                        setTimeout(resetStatusBanner, 2000);
-                      }
-                    });
-                  });
-                }
-              } catch (error) {
-                console.warn('Error in refresh response handler:', error);
-                // Reset banner after a short delay as a fallback
-                setTimeout(resetStatusBanner, 2000);
-              }
-            });
-          });
-        };
+        // Add click handler for Discord - no need to set onclick since it's a button now
+        statusBanner.addEventListener('click', handleBannerClick);
       } else {
         // Normal behavior for all other sites
         statusMessage.textContent = 'Click to Refresh';
@@ -932,51 +885,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ensure Discord class is removed if it was previously added
         statusBanner.classList.remove('discord-refresh');
         
-        // Banner is now styled with CSS for hover/active effects
-        statusBanner.onclick = function() {
-          // Change message to indicate refreshing is in progress
-          statusMessage.textContent = 'Refreshing...';
-          
-          // Add a temporary class to disable hover effects during refresh
-          statusBanner.classList.add('refreshing');
-          
-          // Send a message to the background script to refresh all tabs with the extension active
-          safelyExecuteChromeAPI(() => {
-            chrome.runtime.sendMessage({ action: 'refreshTabs' }, function(response) {
-              try {
-                // Check for runtime error first
-                if (chrome.runtime.lastError) {
-                  console.log("Error refreshing tabs:", chrome.runtime.lastError.message);
-                  // Reset banner after a short delay
-                  setTimeout(resetStatusBanner, 2000);
-                  return;
-                }
-                
-                if (response && response.success) {
-                  console.log('Tabs refreshed successfully');
-                  
-                  // First save the refresh state to false so it doesn't show refresh banner again
-                  safelyExecuteChromeAPI(() => {
-                    chrome.storage.local.set({ refreshNeeded: false }, function() {
-                      try {
-                        // Perform a soft refresh instead of a full page reload
-                        softRefresh();
-                      } catch (error) {
-                        console.warn('Error in softRefresh:', error);
-                        // Reset banner after a short delay as a fallback
-                        setTimeout(resetStatusBanner, 2000);
-                      }
-                    });
-                  });
-                }
-              } catch (error) {
-                console.warn('Error in refresh response handler:', error);
-                // Reset banner after a short delay as a fallback
-                setTimeout(resetStatusBanner, 2000);
-              }
-            });
-          });
-        };
+        // Add click handler - no need to set onclick since it's a button now
+        statusBanner.addEventListener('click', handleBannerClick);
       }
     });
     
@@ -997,6 +907,52 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save the refresh needed state to storage
     safelyExecuteChromeAPI(() => {
       chrome.storage.local.set({ refreshNeeded: true });
+    });
+  }
+  
+  // Handler function for banner click
+  function handleBannerClick() {
+    // Change message to indicate refreshing is in progress
+    statusMessage.textContent = 'Refreshing...';
+    
+    // Add a temporary class to disable hover effects during refresh
+    statusBanner.classList.add('refreshing');
+    
+    // Send a message to the background script to refresh all tabs with the extension active
+    safelyExecuteChromeAPI(() => {
+      chrome.runtime.sendMessage({ action: 'refreshTabs' }, function(response) {
+        try {
+          // Check for runtime error first
+          if (chrome.runtime.lastError) {
+            console.log("Error refreshing tabs:", chrome.runtime.lastError.message);
+            // Reset banner after a short delay
+            setTimeout(resetStatusBanner, 2000);
+            return;
+          }
+          
+          if (response && response.success) {
+            console.log('Tabs refreshed successfully');
+            
+            // First save the refresh state to false so it doesn't show refresh banner again
+            safelyExecuteChromeAPI(() => {
+              chrome.storage.local.set({ refreshNeeded: false }, function() {
+                try {
+                  // Perform a soft refresh instead of a full page reload
+                  softRefresh();
+                } catch (error) {
+                  console.warn('Error in softRefresh:', error);
+                  // Reset banner after a short delay as a fallback
+                  setTimeout(resetStatusBanner, 2000);
+                }
+              });
+            });
+          }
+        } catch (error) {
+          console.warn('Error in refresh response handler:', error);
+          // Reset banner after a short delay as a fallback
+          setTimeout(resetStatusBanner, 2000);
+        }
+      });
     });
   }
   
@@ -1021,8 +977,8 @@ document.addEventListener('DOMContentLoaded', function() {
     statusBanner.style.transform = '';
     statusBanner.style.willChange = '';
     
-    // Remove click handler
-    statusBanner.onclick = null;
+    // Remove click handlers
+    statusBanner.removeEventListener('click', handleBannerClick);
     
     // Reset the refresh needed state in storage
     chrome.storage.local.set({ refreshNeeded: false });
@@ -1633,11 +1589,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Start initializing the UI
   initMainUI();
   
-  // Speed selector click handler - using the button-wrapper for improved responsiveness
-  document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
-    wrapper.addEventListener('click', function() {
+  // Speed selector click handler - using the button element directly
+  document.querySelectorAll('.speed-selector .button-wrapper').forEach(button => {
+    button.addEventListener('click', function() {
+      // Use the data-speed attribute directly from the button
+      const speed = this.getAttribute('data-speed');
       const speedOption = this.querySelector('.speed-option');
-      const speed = speedOption.getAttribute('data-speed');
       
       // Only proceed if this is not already the active option
       if (!speedOption.classList.contains('active')) {
