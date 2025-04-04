@@ -764,14 +764,6 @@ document.addEventListener('DOMContentLoaded', function() {
       // Reset the status banner first
       resetStatusBanner();
       
-      // Clear all button styles to ensure clean state
-      siteButtons.forEach(btn => {
-        btn.style.animation = '';
-        btn.style.backgroundColor = '';
-        btn.style.borderColor = '';
-        btn.classList.remove('active');
-      });
-      
       // Apply current settings to UI with a slight delay to ensure clean state
       setTimeout(function() {
         // This will handle all UI updates including site button selection
@@ -1108,24 +1100,48 @@ document.addEventListener('DOMContentLoaded', function() {
       // --------------------------------
       // Update site buttons
       // --------------------------------
-      const activeSiteButtons = document.querySelectorAll('.site-button.active');
-      activeSiteButtons.forEach(btn => {
+      // First, remove active class from all site buttons
+      document.querySelectorAll('.site-button').forEach(btn => {
+        btn.classList.remove('active');
+        // Clear any existing styles
+        btn.style.animation = '';
+        btn.style.backgroundColor = '';
+        btn.style.borderColor = '';
+      });
+
+      // Get the button corresponding to the current trading site and make it active
+      const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+      if (currentSiteButton) {
+        currentSiteButton.classList.add('active');
+        
+        // Apply appropriate styling based on effect mode
         if (settings.waveEffect) {
           // Wave effect
-          btn.style.animation = '';
-          btn.style.backgroundColor = '';
-          btn.style.borderColor = '';
+          currentSiteButton.style.animation = '';
+          currentSiteButton.style.backgroundColor = '';
+          currentSiteButton.style.borderColor = '';
         } else {
           // Static color
-          btn.style.animation = 'none';
-          btn.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-          btn.style.borderColor = settings.staticColor;
+          currentSiteButton.style.animation = 'none';
+          currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+          currentSiteButton.style.borderColor = settings.staticColor;
         }
         
         if (!settings.extensionActive) {
-          btn.classList.add('greyed-out');
+          currentSiteButton.classList.add('greyed-out');
         }
-      });
+        
+        // Update site labels visibility
+        document.querySelectorAll('.site-name-label').forEach(label => {
+          label.style.display = 'none';
+        });
+        
+        // Show only the selected site's label
+        const selectedLabel = document.getElementById(`${settings.tradingSite}-label`);
+        if (selectedLabel) {
+          selectedLabel.style.display = 'block';
+        }
+      }
       
       // --------------------------------
       // Update history item colors
