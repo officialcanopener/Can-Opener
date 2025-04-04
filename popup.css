@@ -242,7 +242,8 @@ h1.wave-text {
   cursor: pointer !important;
 }
 
-#effect-indicator.wave-active {
+#effect-indicator.wave-active, 
+#effect-indicator.fast-mode {
   cursor: pointer !important;
 }
 
@@ -268,6 +269,7 @@ h1.wave-text {
 
 /* Force hardware acceleration and prevent text selection */
 .status-indicator.wave-active,
+.status-indicator.fast-mode,
 .status-indicator.static-active {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
@@ -292,6 +294,20 @@ h1.wave-text {
 
 /* Wave effect state */
 .status-indicator.wave-active {
+  animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  border-color: #ff00ff;
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, color, border-color;
+}
+
+/* Fast mode - same as wave effect but with emphasis on being faster */
+.status-indicator.fast-mode {
   animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart);
   border-color: #ff00ff;
@@ -851,11 +867,26 @@ h2 {
 
 /* Animation speed selector */
 .speed-selector {
-  display: none !important;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  cursor: default; /* Set default cursor */
+  position: relative; /* Create stacking context */
+  z-index: 1; /* Lower than button wrappers */
+  padding: 2px; /* Small padding to avoid edge issues */
 }
 
 .speed-option {
-  display: none !important;
+  padding: 3px 6px;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #2a2a2a;
+  transition: all 0.15s ease; /* Faster transition for snappier feel */
+  width: 24px;
+  text-align: center;
+  border: 2px solid transparent;
+  user-select: none;
+  pointer-events: none; /* Keep this to ensure the wrapper handles events */
 }
 
 /* Remove hover/active effects from the speed-option itself */
@@ -1523,12 +1554,14 @@ h1#title-text.greyed-out {
 }
 
 /* Make sure active wave indicator maintains its animation but still scales text only */
-.button-wrapper:hover .status-indicator.wave-active {
+.button-wrapper:hover .status-indicator.wave-active,
+.button-wrapper:hover .status-indicator.fast-mode {
   /* Remove transform from the container */
   transition: all 0.08s ease-out; /* Faster transition: 0.1s → 0.08s */
 }
 
-.button-wrapper:hover .status-indicator.wave-active span {
+.button-wrapper:hover .status-indicator.wave-active span,
+.button-wrapper:hover .status-indicator.fast-mode span {
   /* Scale only the text span */
   transform: scale(1.15); /* Larger scale: 1.05 → 1.15 */
   display: inline-block;
@@ -1575,7 +1608,8 @@ h1#title-text.greyed-out {
 }
 
 /* Ensure the status-indicator animation doesn't reset on hover */
-.status-indicator.wave-active {
+.status-indicator.wave-active,
+.status-indicator.fast-mode {
   animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart);
   border-color: #ff00ff;
@@ -1601,35 +1635,15 @@ h1#title-text.greyed-out {
   transform: scale(1.02);
 }
 
-/* Add styling for FAST state */
-.status-indicator.fast-active {
-  animation: syncedChromaWaveBorderText calc(var(--animation-speed) * 0.5) linear infinite;
-  animation-delay: var(--animation-restart);
-  border-color: #ff00ff;
-  
-  /* GPU acceleration for smoother animation */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  will-change: background-color, color, border-color;
-}
-
-/* Make sure hover effects work properly for all three states */
-.button-wrapper:hover .status-indicator.fast-active span {
-  /* Scale only the text span */
-  transform: scale(1.15);
-  display: inline-block;
-  transition: transform 0.08s ease-out;
-}
-
-/* Update the effect toggle to ensure it has a consistent width for all three states */
-#effect-indicator {
-  min-width: 70px; /* Make it wider to fit "STATIC" text */
-  text-align: center;
-}
-
-/* Ensure the button-wrapper hover effects work for the FAST state */
-.button-wrapper:hover .status-indicator.fast-active {
-  transition: all 0.08s ease-out;
+/* Explicitly targeting the greyed out states */
+.status-indicator.wave-active.greyed-out,
+.status-indicator.fast-mode.greyed-out,
+#effect-indicator.wave-active.greyed-out,
+#effect-indicator.fast-mode.greyed-out {
+  animation: none !important;
+  background-color: rgba(128, 128, 128, 0.2) !important;
+  color: #888 !important;
+  border-color: #888 !important;
+  opacity: 0.4 !important;
+  filter: grayscale(70%) !important;
 } 
