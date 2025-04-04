@@ -282,10 +282,9 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
       const newSettings = changes.settings.newValue;
       const oldSettings = changes.settings.oldValue || {};
       
-      // Check if animation speed changed
-      if (newSettings.waveEffect && 
-          (!oldSettings.animationSpeed || 
-           newSettings.animationSpeed !== oldSettings.animationSpeed)) {
+      // Check if effect state changed and it involves a different animation speed
+      if ((newSettings.effectState === 'wave' || newSettings.effectState === 'fast') && 
+          (oldSettings.effectState !== newSettings.effectState)) {
         
         // Update all tabs with new animation speed
         safelyExecuteChromeAPI(() => {
@@ -300,7 +299,7 @@ chrome.storage.onChanged.addListener(function(changes, namespace) {
               tabs.forEach(tab => {
                 safelyMessageTab(tab.id, {
                   action: 'updateAnimationSpeed',
-                  speedSetting: newSettings.animationSpeed
+                  speedSetting: newSettings.effectState // Use the effectState directly as the speed setting
                 });
               });
             } catch (error) {
