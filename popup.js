@@ -456,34 +456,45 @@ document.addEventListener('DOMContentLoaded', function() {
           // Currently in FAST mode, toggle to STATIC mode
           settings.waveEffect = false;
           settings.fastMode = false;
+          console.log("Switched to STATIC mode");
         } else {
           // Currently in WAVE mode, toggle to FAST mode
           settings.fastMode = true;
+          console.log("Switched to FAST mode");
         }
       } else {
         // Currently in STATIC mode, toggle to WAVE mode
         settings.waveEffect = true;
         settings.fastMode = false;
+        console.log("Switched to WAVE mode");
       }
 
-      // Update UI based on new settings
-      updateUI(settings);
-      
-      // Ensure site button is properly styled based on the new mode
+      // Critical: Force an immediate update of the site button style
       const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
       if (currentSiteButton) {
+        console.log("Setting site button style directly for:", settings.tradingSite);
+        
         if (!settings.waveEffect) {
-          // Static mode
-          currentSiteButton.style.animation = 'none';
-          currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-          currentSiteButton.style.borderColor = settings.staticColor;
+          // STATIC mode - force style immediately
+          currentSiteButton.classList.add('static-mode');
+          currentSiteButton.classList.remove('wave-mode');
+          currentSiteButton.setAttribute('style', `
+            animation: none !important; 
+            background-color: ${hexToRgba(settings.staticColor, 0.2)} !important;
+            border-color: ${settings.staticColor} !important;
+          `);
+          console.log("Applied STATIC force override");
         } else {
-          // Wave/Fast mode
-          currentSiteButton.style.animation = '';
-          currentSiteButton.style.backgroundColor = '';
-          currentSiteButton.style.borderColor = '';
+          // WAVE mode - clear any static styling
+          currentSiteButton.classList.add('wave-mode');
+          currentSiteButton.classList.remove('static-mode');
+          currentSiteButton.setAttribute('style', '');
+          console.log("Cleared style for WAVE mode");
         }
       }
+      
+      // Update UI based on new settings
+      updateUI(settings);
       
       // Always restart animations when effect changes to ensure synchronization
       restartAllAnimations();
@@ -694,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (siteButton) {
             // Remove active class from all buttons first
             document.querySelectorAll('.site-button').forEach(btn => {
-              btn.classList.remove('active');
+              btn.classList.remove('active', 'static-mode', 'wave-mode');
               // Clear any existing styles
               btn.style.animation = '';
               btn.style.backgroundColor = '';
@@ -705,16 +716,25 @@ document.addEventListener('DOMContentLoaded', function() {
             siteButton.classList.add('active');
             
             // Apply appropriate styling based on current mode
-            if (!settings.waveEffect) {
-              // Static mode
-              siteButton.style.animation = 'none';
-              siteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-              siteButton.style.borderColor = settings.staticColor;
-            } else {
+            if (settings.waveEffect) {
               // Wave mode
+              siteButton.classList.add('wave-mode');
+              siteButton.classList.remove('static-mode');
               siteButton.style.animation = '';
               siteButton.style.backgroundColor = '';
               siteButton.style.borderColor = '';
+              console.log("Applied WAVE styling to site button");
+            } else {
+              // Static mode
+              siteButton.classList.add('static-mode');
+              siteButton.classList.remove('wave-mode');
+              siteButton.style.animation = 'none !important';
+              siteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+              siteButton.style.borderColor = settings.staticColor;
+              console.log("Applied STATIC styling to site button:", settings.staticColor);
+              if (!settings.extensionActive) {
+                siteButton.classList.add('greyed-out');
+              }
             }
             
             // Update site labels
@@ -804,6 +824,9 @@ document.addEventListener('DOMContentLoaded', function() {
           currentSiteButton.style.animation = 'none';
           currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
           currentSiteButton.style.borderColor = settings.staticColor;
+          if (!settings.extensionActive) {
+            currentSiteButton.classList.add('greyed-out');
+          }
         }
       }
       
@@ -1208,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // --------------------------------
       // First, remove active class from all site buttons
       document.querySelectorAll('.site-button').forEach(btn => {
-        btn.classList.remove('active');
+        btn.classList.remove('active', 'static-mode', 'wave-mode');
         // Clear any existing styles
         btn.style.animation = '';
         btn.style.backgroundColor = '';
@@ -1218,23 +1241,29 @@ document.addEventListener('DOMContentLoaded', function() {
       // Get the button corresponding to the current trading site and make it active
       const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
       if (currentSiteButton) {
+        console.log("Updating site button for:", settings.tradingSite, "Wave effect:", settings.waveEffect);
         currentSiteButton.classList.add('active');
         
         // Apply appropriate styling based on effect mode
         if (settings.waveEffect) {
           // Wave effect
+          currentSiteButton.classList.add('wave-mode');
+          currentSiteButton.classList.remove('static-mode');
           currentSiteButton.style.animation = '';
           currentSiteButton.style.backgroundColor = '';
           currentSiteButton.style.borderColor = '';
+          console.log("Applied WAVE styling to site button");
         } else {
           // Static color
-          currentSiteButton.style.animation = 'none';
+          currentSiteButton.classList.add('static-mode');
+          currentSiteButton.classList.remove('wave-mode');
+          currentSiteButton.style.animation = 'none !important';
           currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
           currentSiteButton.style.borderColor = settings.staticColor;
-        }
-        
-        if (!settings.extensionActive) {
-          currentSiteButton.classList.add('greyed-out');
+          console.log("Applied STATIC styling to site button:", settings.staticColor);
+          if (!settings.extensionActive) {
+            currentSiteButton.classList.add('greyed-out');
+          }
         }
         
         // Update site labels visibility
