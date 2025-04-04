@@ -197,79 +197,68 @@ h1.wave-text {
 /* Make status indicators clickable */
 .status-indicator.clickable,
 .status-indicator.clickable * {
-  cursor: pointer !important;
-  user-select: none;
-  pointer-events: auto !important;
+  /* These will be handled by the button wrapper now */
 }
 
 /* Target both status indicators to ensure consistent styling */
 #status-indicator.clickable,
 #effect-indicator.clickable {
-  cursor: pointer !important;
-  transition: all 0.1s ease-out;
-  pointer-events: auto !important; /* Ensure pointer events are enabled */
+  /* These will be handled by the button wrapper now */
 }
 
 /* Override potentially problematic properties on both indicators */
 #effect-indicator, 
 #status-indicator {
-  pointer-events: none; /* Base state - the wrapper handles events */
+  pointer-events: none !important; /* Base state - the wrapper handles events */
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
 }
 
-/* Fix effect indicator cursor issues */
+/* Remove ALL conflicting override properties */
 #effect-indicator,
 #effect-indicator *,
 #effect-indicator.wave-active,
 #effect-indicator.static-active,
 #effect-indicator:hover {
-  cursor: default !important; /* Let the wrapper handle the cursor */
-  pointer-events: none !important; /* Disable pointer events on the inner element */
-}
-
-/* Remove any hover effects directly on indicators since they now use wrappers */
-#status-indicator.clickable:hover,
-#effect-indicator.clickable:hover {
-  filter: none;
-  transform: none;
+  cursor: default !important;
+  pointer-events: none !important;
 }
 
 /* Clear any active effects on indicators */
 #status-indicator.clickable:active,
 #effect-indicator.clickable:active {
-  transform: none;
+  /* Remove these conflicting rules */
 }
 
 /* Override any potential text selection behavior */
 #effect-indicator {
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
 #effect-indicator.wave-active {
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
 #effect-indicator.static-active {
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
 #effect-indicator:hover {
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
-/* Override for all text states */
+/* Override for all text states - remove all conflicting rules */
 #effect-indicator,
 #effect-indicator * {
-  cursor: pointer !important;
+  cursor: default !important;
   text-align: center;
   -webkit-user-select: none !important;
   -moz-user-select: none !important;
   -ms-user-select: none !important;
   user-select: none !important;
-  pointer-events: auto !important;
+  pointer-events: none !important;
 }
 
 /* Force hardware acceleration and prevent text selection */
@@ -901,7 +890,9 @@ h2 {
   100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; color: #ff0000; } /* Back to Red */
 }
 
-/* Prevent text selection throughout the popup */
+/* Clean up inconsistent cursor handling across the UI */
+
+/* Default state for all elements */
 body, 
 .container, 
 h1, h2, h3, 
@@ -917,24 +908,85 @@ h1, h2, h3,
 .page-title,
 .timestamp,
 .token-name,
-.token-symbol {
+.token-symbol,
+.site-button,
+.site-button-logo,
+.chroma-char,
+.static-char {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   cursor: default;
+  pointer-events: none; /* By default elements don't handle events */
 }
 
-/* Ensure clickable elements still show the pointer cursor */
-[class*="clickable"],
-.button-wrapper,
-.status-banner.refresh-required,
-.address-item,
-/* Remove direct reference to speed-option since it has pointer-events: none */
-/* .speed-option, */
+/* Critical fix: clear older conflicting rules */
+#effect-indicator,
+#effect-indicator *,
+#effect-indicator.wave-active,
+#effect-indicator.static-active,
+#effect-indicator:hover {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* Reset all button styles to default non-clickable state */
+#status-indicator, 
+#effect-indicator,
+.status-banner, 
+.speed-option,
+.site-button {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* Clean up button wrapper styles - they're the ONLY elements that should handle pointer events */
+.button-wrapper {
+  display: inline-block;
+  cursor: pointer !important;
+  transition: all 0.1s ease-out;
+  pointer-events: auto !important; /* All button wrappers handle events */
+  position: relative;
+  z-index: 1;
+}
+
+.button-wrapper:hover {
+  filter: brightness(1.25);
+  transform: scale(1.05);
+}
+
+.button-wrapper:active {
+  transform: scale(0.95);
+  transition: transform 0.08s ease-out;
+}
+
+/* Explicit handling for status banner */
+.status-banner.refresh-required {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Address items behave like button wrappers */
+.address-item {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none;
+}
+
+/* Color picker is a direct interactive element */
 input[type="color"] {
   cursor: pointer !important;
-  pointer-events: auto !important; /* Ensure pointer events are enabled */
+  pointer-events: auto !important;
+}
+
+/* Prevent any hover effects directly on inner elements */
+.site-button:hover,
+.speed-option:hover,
+#effect-indicator:hover,
+#status-indicator:hover {
+  filter: none !important;
+  transform: none !important;
 }
 
 /* Greyed out state for when extension is inactive */
