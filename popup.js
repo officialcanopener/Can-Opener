@@ -21,58 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Add event listeners for view toggle buttons
-  const view3dButton = document.getElementById('view-3d');
-  const viewListButton = document.getElementById('view-list');
   const recentAddressesList = document.getElementById('recent-addresses-list');
-  
-  if (view3dButton && viewListButton) {
-    // Initialize view mode from storage
-    chrome.storage.local.get('viewMode', function(result) {
-      const viewMode = result.viewMode || 'list'; // Default to list view
-      setViewMode(viewMode);
-    });
-    
-    view3dButton.addEventListener('click', function() {
-      setViewMode('3d');
-      // Save preference
-      chrome.storage.local.set({ viewMode: '3d' });
-    });
-    
-    viewListButton.addEventListener('click', function() {
-      setViewMode('list');
-      // Save preference
-      chrome.storage.local.set({ viewMode: 'list' });
-    });
-  }
-  
-  // Function to set view mode
-  function setViewMode(mode) {
-    if (mode === '3d') {
-      // Activate Scroll button
-      view3dButton.classList.add('active');
-      viewListButton.classList.remove('active');
-      
-      // Switch to horizontal scroll view
-      recentAddressesList.classList.remove('list-view');
-      recentAddressesList.classList.add('scroll-view');
-      
-      // Reload addresses in horizontal scroll format
-      loadRecentAddresses();
-    } else {
-      // Activate List button
-      viewListButton.classList.add('active');
-      view3dButton.classList.remove('active');
-      
-      // Switch to List view
-      recentAddressesList.classList.add('list-view');
-      recentAddressesList.classList.remove('scroll-view');
-      
-      // Reload addresses in list format
-      loadRecentAddresses();
-    }
-  }
-  
   const extensionActiveToggle = document.getElementById('extension-active');
   const waveEffectToggle = document.getElementById('wave-effect');
   const staticColorPicker = document.getElementById('static-color');
@@ -889,13 +838,104 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Function to check if the current tab is on Discord.com
+  function checkIfDiscord(callback) {
+    safelyExecuteChromeAPI(() => {
+      chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+        try {
+          if (chrome.runtime.lastError) {
+            console.warn('Error querying tabs:', chrome.runtime.lastError.message);
+            callback(false);
+            return;
+          }
+          
+          if (tabs && tabs.length > 0 && tabs[0].url) {
+            const url = new URL(tabs[0].url);
+            const isDiscord = url.hostname.includes('discord.com');
+            callback(isDiscord);
+          } else {
+            callback(false);
+          }
+        } catch (error) {
+          console.warn('Error in checkIfDiscord:', error);
+          callback(false);
+        }
+      });
+    }, () => callback(false));
+  }
+  
   // Function to show refresh notification
   function showRefreshNotification() {
     // Show refresh notification regardless of extension state
     refreshNeeded = true;
     statusBanner.classList.remove('ready', 'inactive');
     statusBanner.classList.add('refresh-required');
-    statusMessage.textContent = 'Click to Refresh';
+    
+    // Check if the current tab is Discord.com
+    checkIfDiscord(isDiscord => {
+      if (isDiscord) {
+        // Discord-specific behavior - non-clickable banner
+        statusMessage.textContent = 'Refresh Required';
+        
+        // Add Discord-specific class
+        statusBanner.classList.add('discord-refresh');
+        
+        // Remove click handler for Discord
+        statusBanner.onclick = null;
+      } else {
+        // Normal behavior for all other sites
+        statusMessage.textContent = 'Click to Refresh';
+        
+        // Ensure Discord class is removed if it was previously added
+        statusBanner.classList.remove('discord-refresh');
+        
+        // Banner is now styled with CSS for hover/active effects
+        statusBanner.onclick = function() {
+          // Change message to indicate refreshing is in progress
+          statusMessage.textContent = 'Refreshing...';
+          
+          // Add a temporary class to disable hover effects during refresh
+          statusBanner.classList.add('refreshing');
+          
+          // Send a message to the background script to refresh all tabs with the extension active
+          safelyExecuteChromeAPI(() => {
+            chrome.runtime.sendMessage({ action: 'refreshTabs' }, function(response) {
+              try {
+                // Check for runtime error first
+                if (chrome.runtime.lastError) {
+                  console.log("Error refreshing tabs:", chrome.runtime.lastError.message);
+                  // Reset banner after a short delay
+                  setTimeout(resetStatusBanner, 2000);
+                  return;
+                }
+                
+                if (response && response.success) {
+                  console.log('Tabs refreshed successfully');
+                  
+                  // First save the refresh state to false so it doesn't show refresh banner again
+                  safelyExecuteChromeAPI(() => {
+                    chrome.storage.local.set({ refreshNeeded: false }, function() {
+                      try {
+                        // Perform a soft refresh instead of a full page reload
+                        softRefresh();
+                      } catch (error) {
+                        console.warn('Error in softRefresh:', error);
+                        // Reset banner after a short delay as a fallback
+                        setTimeout(resetStatusBanner, 2000);
+                      }
+                    });
+                  });
+                }
+              } catch (error) {
+                console.warn('Error in refresh response handler:', error);
+                // Reset banner after a short delay as a fallback
+                setTimeout(resetStatusBanner, 2000);
+              }
+            });
+          });
+        };
+      }
+    });
     
     // Clear any animation styles and set appropriate colors
     statusBanner.style.animation = '';
@@ -911,52 +951,6 @@ document.addEventListener('DOMContentLoaded', function() {
     statusBanner.style.transform = '';
     statusBanner.style.willChange = '';
     
-    // Banner is now styled with CSS for hover/active effects
-    statusBanner.onclick = function() {
-      // Change message to indicate refreshing is in progress
-      statusMessage.textContent = 'Refreshing...';
-      
-      // Add a temporary class to disable hover effects during refresh
-      statusBanner.classList.add('refreshing');
-      
-      // Send a message to the background script to refresh all tabs with the extension active
-      safelyExecuteChromeAPI(() => {
-        chrome.runtime.sendMessage({ action: 'refreshTabs' }, function(response) {
-          try {
-            // Check for runtime error first
-            if (chrome.runtime.lastError) {
-              console.log("Error refreshing tabs:", chrome.runtime.lastError.message);
-              // Reset banner after a short delay
-              setTimeout(resetStatusBanner, 2000);
-              return;
-            }
-            
-            if (response && response.success) {
-              console.log('Tabs refreshed successfully');
-              
-              // First save the refresh state to false so it doesn't show refresh banner again
-              safelyExecuteChromeAPI(() => {
-                chrome.storage.local.set({ refreshNeeded: false }, function() {
-                  try {
-                    // Perform a soft refresh instead of a full page reload
-                    softRefresh();
-                  } catch (error) {
-                    console.warn('Error in softRefresh:', error);
-                    // Reset banner after a short delay as a fallback
-                    setTimeout(resetStatusBanner, 2000);
-                  }
-                });
-              });
-            }
-          } catch (error) {
-            console.warn('Error in refresh response handler:', error);
-            // Reset banner after a short delay as a fallback
-            setTimeout(resetStatusBanner, 2000);
-          }
-        });
-      });
-    };
-    
     // Save the refresh needed state to storage
     safelyExecuteChromeAPI(() => {
       chrome.storage.local.set({ refreshNeeded: true });
@@ -966,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to reset status banner to "Active"
   function resetStatusBanner() {
     refreshNeeded = false;
-    statusBanner.classList.remove('refresh-required', 'inactive', 'refreshing');
+    statusBanner.classList.remove('refresh-required', 'inactive', 'refreshing', 'discord-refresh');
     statusBanner.classList.add('ready');
     statusMessage.textContent = 'Active';
     
@@ -993,7 +987,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to set status banner to "Inactive"
   function setInactiveBanner() {
-    statusBanner.classList.remove('ready', 'refresh-required');
+    statusBanner.classList.remove('ready', 'refresh-required', 'discord-refresh');
     statusBanner.classList.add('inactive');
     statusMessage.textContent = 'Inactive';
     
@@ -1475,253 +1469,26 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Load recent addresses
   function loadRecentAddresses() {
-    // Fetch recent addresses from storage
-    chrome.storage.local.get(['recentAddresses', 'settings'], function(result) {
-      const recentAddresses = result.recentAddresses || [];
-      const settings = result.settings || defaultSettings;
-      const isScrollView = recentAddressesList.classList.contains('scroll-view');
-      
-      // Clear loading message
-      recentAddressesList.innerHTML = '';
-      
-      if (recentAddresses.length === 0) {
-        // Show empty state
-        recentAddressesList.innerHTML = `
-          <div class="empty-state">
-            History is empty. Tokens will appear here after clicking addresses online.
-          </div>
-        `;
-        return;
-      }
-      
-      if (isScrollView) {
-        // Create horizontal scroll view with "train" effect
-        createScrollView(recentAddresses, settings);
-      } else {
-        // Create traditional list view
-        createListView(recentAddresses, settings);
-      }
-    });
-  }
-  
-  // Create horizontal scroll view with "train" effect
-  function createScrollView(addresses, settings) {
-    // Create scroll container
-    const scrollContainer = document.createElement('div');
-    scrollContainer.className = 'scroll-container';
+  // Fetch recent addresses from storage
+  chrome.storage.local.get(['recentAddresses', 'settings'], function(result) {
+    const recentAddresses = result.recentAddresses || [];
+    const settings = result.settings || defaultSettings;
     
-    // Variables to track current token
-    let currentIndex = 0;
-    let intervalId = null;
+    // Clear loading message
+    recentAddressesList.innerHTML = '';
     
-    // Function to create a token item in the same style as list view
-    function createTokenItem(item) {
-      const tokenItem = document.createElement('div');
-      tokenItem.className = 'token-train-item';
-      
-      const addressLink = document.createElement('a');
-      addressLink.className = 'address-link';
-      addressLink.href = buildTradingSiteUrl(item.address, settings.tradingSite);
-      addressLink.target = '_blank';
-      addressLink.rel = 'noopener noreferrer';
-      
-      // Create token container
-      const tokenContainer = document.createElement('div');
-      tokenContainer.className = 'token-container';
-      
-      // Add token logo if available
-      if (item.tokenMetadata && item.tokenMetadata.logoURI) {
-        const tokenLogo = document.createElement('img');
-        tokenLogo.src = item.tokenMetadata.logoURI;
-        tokenLogo.className = 'token-logo';
-        tokenLogo.onerror = function() {
-          // If logo fails to load, hide it
-          this.style.display = 'none';
-        };
-        tokenContainer.appendChild(tokenLogo);
-      } else {
-        // Create placeholder logo
-        const placeholderLogo = document.createElement('div');
-        placeholderLogo.className = 'token-logo-placeholder';
-        placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
-          ? item.tokenMetadata.symbol.charAt(0) 
-          : '?';
-        tokenContainer.appendChild(placeholderLogo);
-      }
-      
-      // Create token info container
-      const tokenInfo = document.createElement('div');
-      tokenInfo.className = 'token-info';
-      
-      // Add token name and symbol
-      if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
-        // Token name - dynamic based on wave effect setting
-        const tokenName = document.createElement('div');
-        
-        if (settings.waveEffect) {
-          // Apply wave effect to token name
-          tokenName.className = 'token-name chroma-wave wave-text';
-          
-          // Split token name into characters for the wave effect
-          const nameChars = item.tokenMetadata.name.split('');
-          nameChars.forEach((char, index) => {
-            const span = document.createElement('span');
-            span.textContent = char;
-            // Set character index for staggered animation
-            span.className = 'chroma-char';
-            span.style.setProperty('--char-index', index);
-            tokenName.appendChild(span);
-          });
-        } else {
-          // Static color mode
-          tokenName.className = 'token-name';
-          tokenName.textContent = item.tokenMetadata.name;
-          tokenName.style.color = settings.staticColor;
-        }
-        
-        tokenInfo.appendChild(tokenName);
-        
-        // Token symbol
-        const tokenSymbol = document.createElement('div');
-        tokenSymbol.className = 'token-symbol';
-        tokenSymbol.textContent = item.tokenMetadata.symbol;
-        tokenInfo.appendChild(tokenSymbol);
-      } else {
-        // Display "Unknown Token" for unrecognized tokens
-        const tokenName = document.createElement('div');
-        tokenName.className = 'token-name';
-        tokenName.textContent = 'Unknown Token';
-        tokenInfo.appendChild(tokenName);
-      }
-      
-      tokenContainer.appendChild(tokenInfo);
-      
-      // Add timestamp
-      const timestamp = document.createElement('div');
-      timestamp.className = 'timestamp';
-      timestamp.textContent = formatRelativeTime(item.timestamp);
-      
-      addressLink.appendChild(tokenContainer);
-      tokenItem.appendChild(addressLink);
-      tokenItem.appendChild(timestamp);
-      
-      // Add click handler to open the URL
-      tokenItem.addEventListener('click', function() {
-        window.open(addressLink.href, '_blank');
-      });
-      
-      return tokenItem;
+    if (recentAddresses.length === 0) {
+      // Show empty state
+      recentAddressesList.innerHTML = `
+        <div class="empty-state">
+                History is empty. Tokens will appear here after clicking addresses online.
+        </div>
+      `;
+      return;
     }
     
-    // Function to show a specific token
-    function showToken(index) {
-      // Remove all existing tokens
-      const existingTokens = scrollContainer.querySelectorAll('.token-train-item');
-      existingTokens.forEach(token => {
-        if (token.classList.contains('active')) {
-          // Add slide out animation to the current active token
-          token.classList.add('slide-out-left');
-          token.classList.remove('active');
-          
-          // Remove after animation completes
-          setTimeout(() => {
-            if (scrollContainer.contains(token)) {
-              scrollContainer.removeChild(token);
-            }
-          }, 500);
-        } else {
-          // Remove any other tokens immediately
-          if (scrollContainer.contains(token)) {
-            scrollContainer.removeChild(token);
-          }
-        }
-      });
-      
-      // Create new token item
-      const newToken = createTokenItem(addresses[index]);
-      newToken.classList.add('next');
-      scrollContainer.appendChild(newToken);
-      
-      // Force reflow to ensure animation works
-      void newToken.offsetWidth;
-      
-      // Add slide in animation
-      newToken.classList.add('slide-in-right');
-      newToken.classList.remove('next');
-      newToken.classList.add('active');
-    }
-    
-    // Function to show the next token
-    function showNextToken() {
-      currentIndex = (currentIndex + 1) % addresses.length;
-      showToken(currentIndex);
-    }
-    
-    // Add initial token
-    if (addresses.length > 0) {
-      showToken(0);
-      
-      // Start auto-scrolling
-      intervalId = setInterval(showNextToken, 3000);
-    }
-    
-    // Add scroll container to DOM
-    recentAddressesList.appendChild(scrollContainer);
-    
-    // Add pause/resume on hover
-    scrollContainer.addEventListener('mouseenter', function() {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    });
-    
-    scrollContainer.addEventListener('mouseleave', function() {
-      if (!intervalId) {
-        intervalId = setInterval(showNextToken, 3000);
-      }
-    });
-    
-    // Add manual navigation with click
-    scrollContainer.addEventListener('click', function(e) {
-      // Only trigger if clicking directly on the container (not on a token)
-      if (e.target === scrollContainer) {
-        showNextToken();
-      }
-    });
-    
-    // Manual navigation with keyboard
-    document.addEventListener('keydown', function(e) {
-      // Only handle if the scroll view is active
-      if (recentAddressesList.classList.contains('scroll-view')) {
-        if (e.key === 'ArrowRight') {
-          showNextToken();
-        } else if (e.key === 'ArrowLeft') {
-          currentIndex = (currentIndex - 1 + addresses.length) % addresses.length;
-          showToken(currentIndex);
-        }
-      }
-    });
-    
-    // Clean up interval when view changes
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          if (!recentAddressesList.classList.contains('scroll-view') && intervalId) {
-            clearInterval(intervalId);
-            intervalId = null;
-          }
-        }
-      });
-    });
-    
-    observer.observe(recentAddressesList, { attributes: true });
-  }
-  
-  // Create traditional list view
-  function createListView(addresses, settings) {
     // Create address items
-    addresses.forEach(item => {
+    recentAddresses.forEach(item => {
       const addressItem = document.createElement('div');
       addressItem.className = 'address-item';
       
@@ -1731,78 +1498,78 @@ document.addEventListener('DOMContentLoaded', function() {
       addressLink.target = '_blank';
       addressLink.rel = 'noopener noreferrer';
       
-      // Create a container for token info
-      const tokenContainer = document.createElement('div');
-      tokenContainer.className = 'token-container';
-      
-      // Add token logo if available
-      if (item.tokenMetadata && item.tokenMetadata.logoURI) {
-        const tokenLogo = document.createElement('img');
-        tokenLogo.src = item.tokenMetadata.logoURI;
-        tokenLogo.className = 'token-logo';
-        tokenLogo.onerror = function() {
-          // If logo fails to load, hide it
-          this.style.display = 'none';
-        };
-        tokenContainer.appendChild(tokenLogo);
-      } else {
-        // Create placeholder logo
-        const placeholderLogo = document.createElement('div');
-        placeholderLogo.className = 'token-logo-placeholder';
-        placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
-          ? item.tokenMetadata.symbol.charAt(0) 
-          : '?';
-        tokenContainer.appendChild(placeholderLogo);
-      }
-      
-      // Create token info container
-      const tokenInfo = document.createElement('div');
-      tokenInfo.className = 'token-info';
-      
-      // Add token name and symbol
-      if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
-        // Token name - dynamic based on wave effect setting
-        const tokenName = document.createElement('div');
+        // Create a container for token info
+        const tokenContainer = document.createElement('div');
+        tokenContainer.className = 'token-container';
         
-        if (settings.waveEffect) {
-          // Apply wave effect to token name
-          tokenName.className = 'token-name chroma-wave wave-text';
-          
-          // Split token name into characters for the wave effect
-          const nameChars = item.tokenMetadata.name.split('');
-          nameChars.forEach((char, index) => {
-            const span = document.createElement('span');
-            span.textContent = char;
-            // Set character index for staggered animation
-            span.className = 'chroma-char';
-            span.style.setProperty('--char-index', index);
-            tokenName.appendChild(span);
-          });
+        // Add token logo if available
+        if (item.tokenMetadata && item.tokenMetadata.logoURI) {
+          const tokenLogo = document.createElement('img');
+          tokenLogo.src = item.tokenMetadata.logoURI;
+          tokenLogo.className = 'token-logo';
+          tokenLogo.onerror = function() {
+            // If logo fails to load, hide it
+            this.style.display = 'none';
+          };
+          tokenContainer.appendChild(tokenLogo);
         } else {
-          // Static color mode
-          tokenName.className = 'token-name';
-          tokenName.textContent = item.tokenMetadata.name;
-          tokenName.style.color = settings.staticColor;
+          // Create placeholder logo
+          const placeholderLogo = document.createElement('div');
+          placeholderLogo.className = 'token-logo-placeholder';
+          placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
+            ? item.tokenMetadata.symbol.charAt(0) 
+            : '?';
+          tokenContainer.appendChild(placeholderLogo);
         }
         
-        tokenInfo.appendChild(tokenName);
+        // Create token info container
+        const tokenInfo = document.createElement('div');
+        tokenInfo.className = 'token-info';
         
-        // Token symbol
-        const tokenSymbol = document.createElement('div');
-        tokenSymbol.className = 'token-symbol';
-        tokenSymbol.textContent = item.tokenMetadata.symbol;
-        tokenInfo.appendChild(tokenSymbol);
-      } else {
-        // Display "Unknown Token" for unrecognized tokens
-        const tokenName = document.createElement('div');
-        tokenName.className = 'token-name';
-        tokenName.textContent = 'Unknown Token';
-        tokenInfo.appendChild(tokenName);
-      }
-      
-      tokenContainer.appendChild(tokenInfo);
-      addressLink.appendChild(tokenContainer);
-      addressItem.appendChild(addressLink);
+        // Add token name and symbol
+        if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
+          // Token name - dynamic based on wave effect setting
+          const tokenName = document.createElement('div');
+          
+          if (settings.waveEffect) {
+            // Apply wave effect to token name
+            tokenName.className = 'token-name chroma-wave wave-text';
+            
+            // Split token name into characters for the wave effect
+            const nameChars = item.tokenMetadata.name.split('');
+            nameChars.forEach((char, index) => {
+              const span = document.createElement('span');
+              span.textContent = char;
+              // Set character index for staggered animation
+              span.style.setProperty('--char-index', index);
+              span.className = 'chroma-char';
+              tokenName.appendChild(span);
+            });
+          } else {
+            // Static color mode
+            tokenName.className = 'token-name';
+            tokenName.textContent = item.tokenMetadata.name;
+            tokenName.style.color = settings.staticColor;
+          }
+          
+          tokenInfo.appendChild(tokenName);
+          
+          // Token symbol (no animation)
+          const tokenSymbol = document.createElement('div');
+          tokenSymbol.className = 'token-symbol';
+          tokenSymbol.textContent = item.tokenMetadata.symbol;
+          tokenInfo.appendChild(tokenSymbol);
+        } else {
+          // Display "Unknown Token" for unrecognized tokens
+          const tokenName = document.createElement('div');
+          tokenName.className = 'token-name';
+          tokenName.textContent = 'Unknown Token';
+          tokenInfo.appendChild(tokenName);
+        }
+        
+        tokenContainer.appendChild(tokenInfo);
+        addressLink.appendChild(tokenContainer);
+        addressItem.appendChild(addressLink);
       
       // Add timestamp
       const timestamp = document.createElement('div');
@@ -1810,13 +1577,14 @@ document.addEventListener('DOMContentLoaded', function() {
       timestamp.textContent = formatRelativeTime(item.timestamp);
       addressItem.appendChild(timestamp);
         
-      // Add click handler to open the URL since we disabled pointer-events on the inner link
-      addressItem.addEventListener('click', function() {
-        window.open(addressLink.href, '_blank');
-      });
+        // Add click handler to open the URL since we disabled pointer-events on the inner link
+        addressItem.addEventListener('click', function() {
+          window.open(addressLink.href, '_blank');
+        });
       
       recentAddressesList.appendChild(addressItem);
     });
+  });
   }
   
   // Start initializing the UI
