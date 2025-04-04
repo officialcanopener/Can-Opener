@@ -377,7 +377,7 @@ input:checked + .slider:before {
   flex-wrap: nowrap;
   padding: 0 5px;
   position: relative;
-  z-index: 1;
+  z-index: 2; /* Increase z-index to be higher than other elements */
 }
 
 .site-button-group {
@@ -387,6 +387,7 @@ input:checked + .slider:before {
   position: relative;
   margin: 0 2px;
   padding-top: 20px; /* Space for the label above */
+  z-index: 1; /* Establish stacking context */
 }
 
 .site-name-label {
@@ -414,6 +415,7 @@ input:checked + .slider:before {
   user-select: none;
   transition: all 0.2s ease;
   border: 2px solid transparent;
+  position: relative; /* Ensure proper stacking context */
 }
 
 .site-button:hover {
@@ -441,6 +443,9 @@ input:checked + .slider:before {
   height: 32px;
   object-fit: contain;
   transition: transform 0.1s ease-out; /* Match the snappy transition */
+  pointer-events: none; /* Prevent the logo from capturing pointer events */
+  position: relative; /* Ensure proper stacking */
+  z-index: 1; /* Lower than wrapper but higher than background */
 }
 
 /* Create a single synchronized animation for all wave effects */
@@ -783,14 +788,14 @@ h2 {
   z-index: 1;
 }
 
-/* Site buttons hover/animations using button-wrapper */
+/* Improve site button wrappers with additional fixes */
 .site-button-group .button-wrapper {
   display: inline-block;
   cursor: pointer !important;
   position: relative;
   transition: all 0.1s ease-out; /* Snappier transition */
-  padding: 3px; /* Add padding to create larger hit area */
-  margin: -3px; /* Negative margin to compensate for padding */
+  padding: 5px; /* Increase padding for a larger hit area */
+  margin: -5px; /* Negative margin to compensate for padding */
   z-index: 2; /* Higher z-index to prevent flickering */
 }
 
