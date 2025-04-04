@@ -14,11 +14,15 @@
     
     <header>
       <div class="header-buttons left-buttons">
-        <button id="tip-dev-button" class="tip-dev-button">Tip&nbsp;Dev</button>
+        <div class="button-wrapper">
+          <button id="tip-dev-button" class="tip-dev-button">Tip&nbsp;Dev</button>
+        </div>
       </div>
       <h1 id="title-text">Can Opener</h1>
       <div class="header-buttons">
-        <button id="website-button" class="website-button">Website</button>
+        <div class="button-wrapper">
+          <button id="website-button" class="website-button">Website</button>
+        </div>
       </div>
     </header>
     
@@ -120,14 +124,8 @@
     </div>
     
     <div class="recent-section">
-      <div class="section-header">
-        <h2>History</h2>
-        <div class="view-toggle">
-          <button id="view-3d" class="view-button">Scroll</button>
-          <button id="view-list" class="view-button active">List</button>
-        </div>
-      </div>
-      <div id="recent-addresses-list" class="list-view">
+      <h2>History</h2>
+      <div id="recent-addresses-list">
         <div class="loading">Loading recent addresses...</div>
       </div>
     </div>

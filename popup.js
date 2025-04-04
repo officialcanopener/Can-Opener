@@ -5,18 +5,18 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.style.minWidth = "400px";
   document.body.style.minHeight = "600px";
   
-  // Add event listener for the website button
-  const websiteButton = document.getElementById('website-button');
-  if (websiteButton) {
-    websiteButton.addEventListener('click', function() {
+  // Add event listener for the website button wrapper
+  const websiteButtonWrapper = document.querySelector('.header-buttons:not(.left-buttons) .button-wrapper');
+  if (websiteButtonWrapper) {
+    websiteButtonWrapper.addEventListener('click', function() {
       window.open('https://officialcanopener.github.io/Can-Opener/', '_blank');
     });
   }
   
-  // Add event listener for the tip dev button
-  const tipDevButton = document.getElementById('tip-dev-button');
-  if (tipDevButton) {
-    tipDevButton.addEventListener('click', function() {
+  // Add event listener for the tip dev button wrapper
+  const tipDevButtonWrapper = document.querySelector('.header-buttons.left-buttons .button-wrapper');
+  if (tipDevButtonWrapper) {
+    tipDevButtonWrapper.addEventListener('click', function() {
       window.open('https://officialcanopener.github.io/Can-Opener/#supportDev', '_blank');
     });
   }

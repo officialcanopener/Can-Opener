@@ -206,17 +206,28 @@ h1.wave-text {
 #status-indicator.clickable,
 #effect-indicator.clickable {
   cursor: pointer !important;
-  transition: all 0.2s ease;
+  transition: all 0.1s ease-out;
+  pointer-events: auto !important; /* Ensure pointer events are enabled */
 }
 
 /* Override potentially problematic properties on both indicators */
 #effect-indicator, 
 #status-indicator {
-  pointer-events: none;
+  pointer-events: none; /* Base state - the wrapper handles events */
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Fix effect indicator cursor issues */
+#effect-indicator,
+#effect-indicator *,
+#effect-indicator.wave-active,
+#effect-indicator.static-active,
+#effect-indicator:hover {
+  cursor: default !important; /* Let the wrapper handle the cursor */
+  pointer-events: none !important; /* Disable pointer events on the inner element */
 }
 
 /* Remove any hover effects directly on indicators since they now use wrappers */
@@ -761,6 +772,8 @@ h2 {
   cursor: pointer !important;
   position: relative;
   transition: all 0.1s ease-out; /* Snappier transition */
+  pointer-events: auto !important; /* Ensure pointer events are enabled */
+  z-index: 1; /* Add z-index to prevent layering issues */
 }
 
 .site-button-group .button-wrapper:hover {
@@ -921,6 +934,7 @@ h1, h2, h3,
 /* .speed-option, */
 input[type="color"] {
   cursor: pointer !important;
+  pointer-events: auto !important; /* Ensure pointer events are enabled */
 }
 
 /* Greyed out state for when extension is inactive */
