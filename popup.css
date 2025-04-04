@@ -1532,43 +1532,28 @@ h1#title-text.greyed-out {
   margin-top: 3px;
 }
 
-/* ---------------- CURSOR CONTROL - MACBOOK FIX ------------------ */
-/* Apply cursor styles directly to elements instead of in hover state */
+/* ---------------- CURSOR CONTROL - EXTREME FIX ------------------ */
+/* Remove ALL cursor styling and let the OS handle it naturally */
 
-/* Reset pointer events */
-* {
-  pointer-events: none;
+/* Reset all cursor properties everywhere */
+*, *::before, *::after {
+  cursor: auto !important; /* Use browser default */
 }
 
-/* Enable pointer events and set default cursor */
-body,
-.container {
+/* Only control pointer-events for interactivity */
+body, .container {
   pointer-events: auto;
-  cursor: default;
 }
 
-/* Set cursor: pointer directly on clickable elements (not on hover) */
-.button-wrapper {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.status-banner.refresh-required {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.address-item {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
+/* Interactive elements - ONLY control pointer-events, not cursor */
+.button-wrapper,
+.status-banner.refresh-required,
+.address-item,
 input[type="color"] {
   pointer-events: auto;
-  cursor: pointer;
 }
 
-/* Ensure child elements don't have their own cursor styles */
+/* Non-interactive elements - ONLY control pointer-events, not cursor */
 .status-indicator,
 .speed-option,
 .site-button,
@@ -1581,10 +1566,9 @@ input[type="color"] {
 .static-char,
 h1, h2, h3, p, span:not(#status-message) {
   pointer-events: none;
-  cursor: inherit; /* Inherit cursor from parent */
 }
 
-/* Keep visual hover effects, but remove any cursor changes */
+/* Keep visual hover effects */
 .button-wrapper:hover {
   filter: brightness(1.25);
   transform: scale(1.05);
