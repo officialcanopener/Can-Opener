@@ -34,6 +34,17 @@ const defaultSettings = {
 let currentSettings = defaultSettings;
 let isContextValid = true; // Track context validity
 
+// Performance optimization flags
+const isDiscord = window.location.hostname.includes('discord.com');
+const isHighTrafficSite = isDiscord || window.location.hostname.includes('twitter.com');
+
+// Debounce and throttle variables
+let processingQueue = [];
+let processingTimeout = null;
+let lastProcessTime = 0;
+const PROCESS_THROTTLE = isDiscord ? 500 : 150; // More aggressive throttling for Discord
+const MAX_NODES_PER_BATCH = isDiscord ? 50 : 300;
+
 // Check if extension context is valid
 function isExtensionContextValid() {
   try {
@@ -122,7 +133,12 @@ function loadSettings() {
           
           // If extension is now active and wasn't before, process the DOM
           if (currentSettings.extensionActive) {
-            traverseDOM(document.body);
+            // Use batched processing for Discord
+            if (isHighTrafficSite) {
+              processBatchedNodes([document.body]);
+            } else {
+              traverseDOM(document.body);
+            }
           }
         }
       } catch (error) {
@@ -137,7 +153,11 @@ function loadSettings() {
     
     // Still try to process DOM with default settings
     if (currentSettings.extensionActive) {
-      traverseDOM(document.body);
+      if (isHighTrafficSite) {
+        processBatchedNodes([document.body]);
+      } else {
+        traverseDOM(document.body);
+      }
     }
   });
 }
@@ -154,7 +174,11 @@ safelyExecuteChromeAPI(() => {
           // If extension was turned off, do nothing (let page reload naturally refresh)
           // If extension was turned on, process the DOM again
           if (!oldSettings.extensionActive && currentSettings.extensionActive) {
-            traverseDOM(document.body);
+            if (isHighTrafficSite) {
+              processBatchedNodes([document.body]);
+            } else {
+              traverseDOM(document.body);
+            }
           }
         }
       } catch (error) {
@@ -203,6 +227,52 @@ safelyExecuteChromeAPI(() => {
     console.warn('Error setting up message listener:', error);
   }
 });
+
+// High-performance batch processing for Discord and other high-traffic sites
+function processBatchedNodes(nodesToProcess) {
+  if (!currentSettings.extensionActive || !isContextValid) return;
+  
+  // Add all nodes to the processing queue
+  processingQueue.push(...nodesToProcess);
+  
+  // If we already have a processing timeout running, just let it handle the new nodes
+  if (processingTimeout) return;
+  
+  // If we're throttling, check if enough time has passed
+  const now = Date.now();
+  const timeElapsed = now - lastProcessTime;
+  
+  if (timeElapsed < PROCESS_THROTTLE) {
+    // Not enough time has passed, schedule a processing
+    processingTimeout = setTimeout(processBatch, PROCESS_THROTTLE - timeElapsed);
+    return;
+  }
+  
+  // Process immediately
+  processBatch();
+}
+
+// Process a batch of nodes from the queue
+function processBatch() {
+  // Clear the timeout flag
+  processingTimeout = null;
+  lastProcessTime = Date.now();
+  
+  // Grab up to MAX_NODES_PER_BATCH nodes from the queue
+  const nodesToProcess = processingQueue.splice(0, MAX_NODES_PER_BATCH);
+  
+  if (nodesToProcess.length === 0) return;
+  
+  // Process these nodes
+  for (const node of nodesToProcess) {
+    traverseDOM(node);
+  }
+  
+  // If there are still nodes left in the queue, schedule another batch
+  if (processingQueue.length > 0) {
+    processingTimeout = setTimeout(processBatch, PROCESS_THROTTLE);
+  }
+}
 
 // Function to check if a string looks like a valid Solana address
 function isSolanaAddress(address) {
@@ -255,62 +325,8 @@ function buildTradingSiteUrl(address) {
   return pattern.replace('[CONTRACT_ADDRESS]', address);
 }
 
-// Function to fetch token metadata from Jupiter API
-async function fetchTokenMetadata(address) {
-  try {
-    // Use Jupiter's individual token endpoint
-    const response = await fetch(`https://api.jup.ag/tokens/v1/token/${address}`);
-    
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Check if we have valid token data
-    if (data && data.symbol) {
-      return {
-        name: data.name || 'Unknown Token',
-        symbol: data.symbol || '???',
-        logoURI: data.logoURI || null
-      };
-    }
-  } catch (error) {
-    console.error('Error fetching token metadata:', error);
-  }
-  
-  // Return default values if we couldn't get the data
-  return {
-    name: 'Unknown Token',
-    symbol: '???',
-    logoURI: null
-  };
-}
-
 // Cache for token metadata to avoid repeated API calls
-let tokenMetadataCache = null;
-
-// Function to fetch and cache all token metadata
-async function fetchAndCacheTokenMetadata() {
-  if (tokenMetadataCache) {
-    return tokenMetadataCache;
-  }
-
-  try {
-    const response = await fetch('https://token.jup.ag/all');
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    // Create a map for faster lookups
-    tokenMetadataCache = new Map(data.map(token => [token.address, token]));
-    return tokenMetadataCache;
-  } catch (error) {
-    console.error('Error fetching token list:', error);
-    return new Map();
-  }
-}
+let tokenMetadataCache = {};
 
 // Function to store address in recent list
 async function storeRecentAddress(address) {
@@ -318,8 +334,12 @@ async function storeRecentAddress(address) {
     // Don't proceed if extension context is invalid
     if (!isContextValid) return;
     
-    // Fetch token metadata directly
-    const tokenMetadata = await fetchTokenMetadata(address);
+    // Use a simplified token metadata approach to reduce API calls
+    const tokenMetadata = {
+      name: 'Unknown Token',
+      symbol: '???',
+      logoURI: null
+    };
     
     safelyExecuteChromeAPI(() => {
       chrome.storage.local.get(['recentAddresses'], function(result) {
@@ -333,7 +353,7 @@ async function storeRecentAddress(address) {
           recentAddresses.unshift({
             address: address,
             timestamp: Date.now(),
-            pageTitle: document.title,
+            pageTitle: document.title || 'Unknown Page',
             pageUrl: window.location.href,
             tokenMetadata: tokenMetadata
           });
@@ -394,26 +414,31 @@ function wrapAddressWithLink(node, address, startIndex) {
     
     // Add the address text
     if (currentSettings.waveEffect) {
-      // Split into individual spans for the chroma effect
-      const addressChars = address.split('');
-      // Add wave-text class for staggered animation
-      link.classList.add('wave-text');
-      
-      addressChars.forEach((char, index) => {
+      // For Discord, simplify the animation to improve performance
+      if (isDiscord) {
+        // Just create a span with the address instead of letter-by-letter animation
         const span = document.createElement('span');
-        span.textContent = char;
-        // Add staggered delay based on character position
-        span.style.setProperty('--char-index', index);
-        span.className = 'chroma-char';
-        
-        // For Discord, add explicit animation properties
-        if (isDiscord) {
-          span.style.animationDuration = `${speedValue}s`;
-          span.style.animationDelay = `calc(${index} * ${delayFactor}s)`;
-        }
-        
+        span.textContent = address;
+        span.className = 'discord-optimized';
+        span.style.color = '#00ffff'; // Use a static color on Discord
         link.appendChild(span);
-      });
+      } else {
+        // Normal letter-by-letter effect for other sites
+        // Split into individual spans for the chroma effect
+        const addressChars = address.split('');
+        // Add wave-text class for staggered animation
+        link.classList.add('wave-text');
+        
+        addressChars.forEach((char, index) => {
+          const span = document.createElement('span');
+          span.textContent = char;
+          // Add staggered delay based on character position
+          span.style.setProperty('--char-index', index);
+          span.className = 'chroma-char';
+          
+          link.appendChild(span);
+        });
+      }
     } else {
       // Use a single span with static color
       const span = document.createElement('span');
@@ -498,8 +523,14 @@ function traverseDOM(node) {
     }
     
     // Process child nodes
-    for (let i = 0; i < node.childNodes.length; i++) {
-      traverseDOM(node.childNodes[i]);
+    const childNodes = node.childNodes;
+    for (let i = 0; i < childNodes.length; i++) {
+      // On high-traffic sites, queue up child nodes for batch processing instead
+      if (isHighTrafficSite && childNodes.length > 10) {
+        processBatchedNodes([childNodes[i]]);
+      } else {
+        traverseDOM(childNodes[i]);
+      }
     }
   } catch (error) {
     console.warn('Error in traverseDOM:', error);
@@ -529,30 +560,86 @@ safelyExecuteChromeAPI(() => {
 
 // Set up a mutation observer to handle dynamically loaded content
 let observer = null;
+let observerThrottleTimer = null;
+let pendingMutations = [];
+
+function processPendingMutations() {
+  if (!pendingMutations.length) return;
+  
+  // Skip if extension is inactive or context invalid
+  if (!currentSettings.extensionActive || !isContextValid) {
+    pendingMutations = [];
+    return;
+  }
+  
+  // Get the unique nodes to process (avoid duplicates)
+  const nodesToProcess = new Set();
+  
+  pendingMutations.forEach(mutation => {
+    if (mutation.type === 'childList') {
+      mutation.addedNodes.forEach(node => {
+        nodesToProcess.add(node);
+      });
+    }
+  });
+  
+  // Clear the pending mutations
+  pendingMutations = [];
+  
+  // Process the nodes in batches for high-traffic sites
+  if (isHighTrafficSite) {
+    processBatchedNodes(Array.from(nodesToProcess));
+  } else {
+    // Process directly for regular sites
+    nodesToProcess.forEach(node => {
+      traverseDOM(node);
+    });
+  }
+}
+
 try {
   observer = new MutationObserver((mutations) => {
     try {
       // Skip if extension is inactive or context invalid
       if (!currentSettings.extensionActive || !isContextValid) return;
       
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            traverseDOM(node);
-          });
+      // Add these mutations to the pending list
+      pendingMutations.push(...mutations);
+      
+      // Throttle processing for Discord and other high-volume sites
+      if (isHighTrafficSite) {
+        if (!observerThrottleTimer) {
+          observerThrottleTimer = setTimeout(() => {
+            observerThrottleTimer = null;
+            processPendingMutations();
+          }, 500); // 500ms throttle for high-traffic sites
         }
-      });
+      } else {
+        // Process immediately for regular sites
+        processPendingMutations();
+      }
     } catch (error) {
       console.warn('Error in MutationObserver callback:', error);
     }
   });
 
-  // Start observing if extension is active
+  // Start observing if extension is active, with site-specific options
   if (currentSettings.extensionActive) {
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    // For Discord, only observe a subset of mutations to reduce overhead
+    if (isDiscord) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false, // Ignore attribute changes to reduce overhead
+        characterData: false // Ignore text changes to reduce overhead
+      });
+    } else {
+      // Regular observation for other sites
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
   }
 } catch (error) {
   console.warn('Error setting up MutationObserver:', error);
@@ -561,7 +648,7 @@ try {
 // When page loads fully, notify the background that this tab has been refreshed
 window.addEventListener('load', function() {
   try {
-    // Small delay to ensure extension is ready to receive messages
+    // Shorter delay for the initial load notification
     setTimeout(() => {
       safelyExecuteChromeAPI(() => {
         // Send a message to the extension that this page has been refreshed
@@ -583,7 +670,7 @@ window.addEventListener('load', function() {
           }
         });
       });
-    }, 500);
+    }, 200); // Reduced from 500ms to 200ms
   } catch (error) {
     console.warn('Error in window.onload:', error);
   }
@@ -618,44 +705,13 @@ function applyAnimationSpeed(speedSetting, restartTimestamp) {
     root.style.setProperty('--animation-speed', `${speedValue}s`);
     root.style.setProperty('--animation-delay-factor', `${delayFactor}s`);
     
-    // Discord-specific handling: Apply styles directly to elements
-    // This is needed because Discord uses a complex DOM structure with Shadow DOM
-    if (window.location.hostname.includes('discord.com')) {
-      // Find all chroma-wave elements and apply the new speed directly
-      const chromeElements = document.querySelectorAll('.chroma-wave, .site-link, .wave-text, .chroma-char');
-      chromeElements.forEach(el => {
-        if (el.classList.contains('chroma-char')) {
-          // For individual characters, set their animation duration
-          el.style.animationDuration = `${speedValue}s`;
-          
-          // Calculate and set the animation delay based on the character index
-          const charIndex = el.style.getPropertyValue('--char-index') || 0;
-          el.style.animationDelay = `calc(${charIndex} * ${delayFactor}s)`;
-        } else if (el.classList.contains('wave-text') || el.classList.contains('site-link')) {
-          // For container elements, ensure their children have the correct timing
-          const chars = el.querySelectorAll('.chroma-char');
-          chars.forEach((char, index) => {
-            char.style.animationDuration = `${speedValue}s`;
-            char.style.animationDelay = `calc(${index} * ${delayFactor}s)`;
-          });
-        }
-      });
-    }
-    
     // If restart timestamp provided, restart animations
     if (restartTimestamp) {
       // Use modulo 1000 to keep delay within reasonable range
       root.style.setProperty('--animation-restart', `-${restartTimestamp % 1000}ms`);
-      
-      // For Discord, also restart animations by forcing a reflow
-      if (window.location.hostname.includes('discord.com')) {
-        document.querySelectorAll('.chroma-char').forEach(el => {
-          el.style.animation = 'none';
-          void el.offsetWidth; // Force reflow
-          el.style.animation = ''; // Restore animation
-        });
-      }
     }
+    
+    // Discord-specific handling is now simplified - we don't use character animations there
   } catch (error) {
     console.warn('Error in applyAnimationSpeed:', error);
   }
@@ -678,51 +734,7 @@ function forceAnimationRestart(timestamp) {
     // Step 4: Remove the class
     root.classList.remove('force-animation-restart');
     
-    // Discord-specific handling
-    if (window.location.hostname.includes('discord.com')) {
-      // Find all animated elements
-      const animatedElements = document.querySelectorAll('.chroma-char, .site-link, .wave-text');
-      
-      // Reset and restart their animations
-      animatedElements.forEach(el => {
-        // Store original animation
-        const originalAnimation = window.getComputedStyle(el).animation;
-        
-        // Temporarily disable animation
-        el.style.animation = 'none';
-        
-        // Force reflow
-        void el.offsetWidth;
-        
-        // If this is a character with direct animation
-        if (el.classList.contains('chroma-char')) {
-          // Don't restore via blank string, use the computed value
-          if (originalAnimation && originalAnimation !== 'none') {
-            el.style.animation = originalAnimation;
-          } else {
-            el.style.animation = ''; // Remove the inline style
-          }
-        }
-        // If this is a container that might have animated children
-        else if (el.classList.contains('site-link') || el.classList.contains('wave-text')) {
-          el.style.animation = '';
-          
-          // Also restart animations for its children
-          const chars = el.querySelectorAll('.chroma-char');
-          chars.forEach(char => {
-            const charOrigAnim = window.getComputedStyle(char).animation;
-            char.style.animation = 'none';
-            void char.offsetWidth;
-            
-            if (charOrigAnim && charOrigAnim !== 'none') {
-              char.style.animation = charOrigAnim;
-            } else {
-              char.style.animation = '';
-            }
-          });
-        }
-      });
-    }
+    // No Discord-specific handling to reduce complexity
     
     // Step 5: Re-apply animation speed values to ensure consistency
     safelyExecuteChromeAPI(() => {
