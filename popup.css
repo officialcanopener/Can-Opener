@@ -1530,4 +1530,94 @@ h1#title-text.greyed-out {
   font-weight: normal;
   display: block;
   margin-top: 3px;
+}
+
+/* ---------------- CURSOR CONTROL - CRITICAL FIX ------------------ */
+/* Reset ALL cursor handling to prevent any flickering */
+
+/* First, disable pointer events on ALL elements by default */
+* {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* Then explicitly enable pointer-events ONLY on containers and wrappers that need them */
+body,
+.container,
+.button-wrapper,
+.status-banner.refresh-required,
+.address-item,
+input[type="color"] {
+  pointer-events: auto !important;
+  cursor: default !important; /* Default cursor for containers */
+}
+
+/* Apply pointer cursor ONLY to truly clickable elements */
+.button-wrapper,
+.status-banner.refresh-required,
+.address-item,
+input[type="color"] {
+  cursor: pointer !important;
+}
+
+/* Ensure no child elements ever get pointer events */
+.status-indicator,
+.speed-option,
+.site-button,
+.site-button-logo,
+.tip-dev-button,
+.website-button,
+.address-link,
+.address-text,
+.chroma-char,
+.static-char,
+h1, h2, h3, p, span:not(#status-message) {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+/* Lock status message to have no pointer events except when in refresh required status */
+#status-message {
+  pointer-events: none !important;
+}
+
+/* Override any hover effects directly on inner elements */
+.site-button:hover,
+.speed-option:hover,
+#effect-indicator:hover,
+#status-indicator:hover,
+.tip-dev-button:hover,
+.website-button:hover {
+  filter: none !important;
+  transform: none !important;
+}
+
+/* Explicitly isolate all hover effects to wrappers */
+.button-wrapper:hover {
+  filter: brightness(1.25) !important;
+  transform: scale(1.05) !important;
+}
+
+.button-wrapper:active {
+  transform: scale(0.95) !important;
+  transition: transform 0.08s ease-out !important;
+}
+
+/* Special handling for direct-clickable elements */
+.status-banner.refresh-required:hover {
+  filter: none !important; 
+  transform: scale(1.02) !important;
+}
+
+.status-banner.refresh-required:active {
+  transform: scale(0.98) !important;
+}
+
+.address-item:hover {
+  filter: brightness(1.2) !important;
+  transform: scale(1.02) !important;
+}
+
+.address-item:active {
+  transform: scale(0.98) !important;
 } 
