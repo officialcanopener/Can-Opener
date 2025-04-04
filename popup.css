@@ -197,6 +197,7 @@ h1.wave-text {
   min-width: 58px;
   text-align: center;
   position: relative; /* Add positioning context */
+  overflow: hidden; /* Ensure overflowing content is clipped */
 }
 
 /* Make status indicators clickable */
@@ -1526,17 +1527,31 @@ h1#title-text.greyed-out {
 
 /* Status indicators (ON/OFF and WAVE/STATIC) */
 .button-wrapper:hover .status-indicator {
-  transform: scale(1.05);
-  transition: transform 0.1s ease-out;
+  transform: none; /* Don't scale the container */
 }
 
-/* Make sure active wave indicator maintains its animation but still scales */
-.button-wrapper:hover .status-indicator.wave-active {
-  transform: scale(1.05);
-  transition: transform 0.1s ease-out;
+/* Make each status indicator wrap its text in a span */
+#status-indicator, #effect-indicator {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Ensure the status-indicator animation doesn't reset on hover */
+/* Scale the text content */
+.button-wrapper:hover #status-indicator, 
+.button-wrapper:hover #effect-indicator {
+  transform: none; /* Ensure container doesn't scale */
+}
+
+/* Make ON/OFF and WAVE/STATIC text scale */
+.button-wrapper:hover #status-indicator .indicator-text,
+.button-wrapper:hover #effect-indicator .indicator-text {
+  transform: scale(1.05);
+  display: inline-block;
+}
+
+/* Make sure active wave indicator maintains its animation */
 .status-indicator.wave-active {
   animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart);
@@ -1555,35 +1570,54 @@ h1#title-text.greyed-out {
   background-color: rgba(80, 80, 80, 0.4);
   border-color: transparent;
   filter: brightness(1.1);
-  transform: scale(1.05);
-  transition: transform 0.1s ease-out;
+  transform: none; /* Don't scale the container */
 }
 
-/* Make active speed options also scale but keep their color animation */
-.speed-selector .button-wrapper:hover .speed-option.active {
+/* Scale the speed option number text */
+.speed-selector .button-wrapper:hover .speed-option:not(.active) .speed-text {
   transform: scale(1.05);
-  transition: transform 0.1s ease-out;
+  display: inline-block;
+}
+
+/* Make active speed options also scale the text only */
+.speed-selector .button-wrapper:hover .speed-option.active {
+  transform: none; /* Don't scale the container */
+}
+
+.speed-selector .button-wrapper:hover .speed-option.active .speed-text {
+  transform: scale(1.05);
+  display: inline-block;
 }
 
 /* Ensure text in banners enlarges */
-.status-banner.refresh-required:hover #status-message {
-  display: inline-block;
+.status-banner:hover #status-message {
   transform: scale(1.05);
-  transition: transform 0.1s ease-out;
+  display: inline-block;
 }
 
 /* Make sure the Discord note doesn't scale too much */
-.status-banner.refresh-required:hover .discord-note {
-  display: block;
+.status-banner:hover .discord-note {
   transform: scale(1.02);
+  display: block;
+}
+
+/* Address items in history */
+.address-item:hover .token-name {
+  transform: scale(1.05);
+}
+
+.address-item:hover .address-text {
+  transform: scale(1.05);
 }
 
 /* Add transition properties to elements that will be scaled */
 #status-message, 
 .tip-dev-button span, 
 .website-button span,
-.status-indicator,
-.speed-option {
+.indicator-text,
+.speed-text,
+.token-name,
+.address-text {
   transition: transform 0.1s ease-out;
   display: inline-block;
 } 
