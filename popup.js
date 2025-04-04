@@ -1135,7 +1135,13 @@ document.addEventListener('DOMContentLoaded', function() {
       // --------------------------------
       // Apply current animation speed
       // --------------------------------
-      applyAnimationSpeed(settings.animationSpeed);
+      if (settings.waveEffect && settings.fastMode) {
+        // Force fast speed when in FAST mode
+        applyAnimationSpeed('fast');
+      } else {
+        // Use normal speed setting otherwise
+        applyAnimationSpeed(settings.animationSpeed);
+      }
       
       // If the extension is active and wave effect is enabled, restart all animations to ensure synchronization
       if (settings.extensionActive && settings.waveEffect) {
