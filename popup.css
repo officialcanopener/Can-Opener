@@ -207,6 +207,15 @@ h1.wave-text {
   pointer-events: auto !important;
 }
 
+/* Make spans in buttons pass through clicks to the parent */
+.status-indicator span {
+  pointer-events: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
 /* Target both status indicators to ensure consistent styling */
 #status-indicator.clickable,
 #effect-indicator.clickable {
@@ -217,7 +226,7 @@ h1.wave-text {
 /* Override potentially problematic properties on both indicators */
 #effect-indicator, 
 #status-indicator {
-  pointer-events: none;
+  pointer-events: auto !important;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -265,6 +274,19 @@ h1.wave-text {
   -ms-user-select: none !important;
   user-select: none !important;
   pointer-events: auto !important;
+}
+
+/* Ensure the wrapper passes clicks to the button */
+.button-wrapper {
+  display: inline-block;
+  cursor: pointer !important;
+  position: relative;
+}
+
+/* Make sure click events reach the wrapper */
+.toggle-container .button-wrapper {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 /* Force hardware acceleration and prevent text selection */
