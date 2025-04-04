@@ -628,10 +628,12 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           // Update site buttons
-          document.querySelectorAll('.site-button.active').forEach(btn => {
-            btn.style.backgroundColor = hexToRgba(newColor, 0.2);
-            btn.style.borderColor = newColor;
-          });
+          const activeSiteButton = document.querySelector('.site-button.active');
+          if (activeSiteButton) {
+            activeSiteButton.style.animation = 'none';
+            activeSiteButton.style.backgroundColor = hexToRgba(newColor, 0.2);
+            activeSiteButton.style.borderColor = newColor;
+          }
           
           // Update token names
           document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
