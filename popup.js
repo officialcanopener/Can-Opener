@@ -142,73 +142,43 @@ document.addEventListener('DOMContentLoaded', function() {
       const timestamp = Date.now();
       const root = document.documentElement;
       
-      // Store current color before restarting to avoid flashes
-      const titleElement = document.getElementById('title-text');
-      const currentColors = new Map();
-      
-      // Capture current colors of animated elements
-      if (titleElement) {
-        titleElement.querySelectorAll('.chroma-char').forEach(span => {
-          currentColors.set(span, getComputedStyle(span).color);
-        });
-      }
-      
-      // Also store colors for token names and other animated elements
-      document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
-        currentColors.set(span, getComputedStyle(span).color);
-      });
-      
-      // Step 1: Set the restart variable
+      // Use the animation-delay property instead of forcing a complete animation restart
+      // This ensures a smooth transition even when the animation is restarted
       root.style.setProperty('--animation-restart', `-${timestamp % 1000}ms`);
       
-      // Step 2: Set explicit colors before adding the restart class to prevent white flash
-      currentColors.forEach((color, element) => {
-        // Only set explicit color if it's not the default
-        if (color && color !== 'rgb(255, 255, 255)') {
-          element.style.setProperty('--original-color', color);
-          element.style.color = color;
-        } else {
-          // Default to the first color in the animation if we don't have a current color
-          element.style.color = '#ff0000';
-        }
-      });
-      
-      // Step 3: Force a style recalculation to ensure the animations restart
-      root.classList.add('force-animation-restart');
-      
-      // Step 4: Force the browser to process the changes before removing the class
+      // Instead of removing and readding animations (which can cause flickering),
+      // we'll just trigger a reflow to ensure the new animation-delay is applied
       void root.offsetWidth;
       
-      // Step 5: Remove the class
-      root.classList.remove('force-animation-restart');
-      
-      // Step 6: Reset explicit colors to allow animation to control them
-      currentColors.forEach((color, element) => {
-        // Small delay to ensure animation has started
-        setTimeout(() => {
-          element.style.removeProperty('color');
-        }, 10);
-      });
-      
-      // Step 7: Check if we need to reapply the title animation
+      // Step 5: Check if we need to reapply the title animation
+      const titleElement = document.getElementById('title-text');
       if (titleElement && titleElement.classList.contains('wave-text')) {
-        // Re-apply wave effect to ensure synchronization
-        safelyExecuteChromeAPI(() => {
-          chrome.storage.local.get('settings', function(data) {
-            try {
-              const settings = data.settings || defaultSettings;
-              if (settings.waveEffect) {
-                // Only reapply if still in wave mode
-                updateEffectIndicator(settings);
-              }
-            } catch (error) {
-              console.warn('Error in animation settings callback:', error);
-            }
+        // Make sure we preserve any existing children
+        const existingChars = titleElement.querySelectorAll('.chroma-char');
+        if (existingChars.length > 0) {
+          // Only ensure the character indexes are properly set
+          existingChars.forEach((char, index) => {
+            char.style.setProperty('--char-index', index);
           });
-        });
+        } else {
+          // If no characters exist yet, reapply wave effect
+          safelyExecuteChromeAPI(() => {
+            chrome.storage.local.get('settings', function(data) {
+              try {
+                const settings = data.settings || defaultSettings;
+                if (settings.waveEffect) {
+                  // Only reapply if still in wave mode
+                  updateEffectIndicator(settings);
+                }
+              } catch (error) {
+                console.warn('Error in animation settings callback:', error);
+              }
+            });
+          });
+        }
       }
       
-      // Step 8: Broadcast restart message safely to content scripts
+      // Step 6: Broadcast restart message safely to content scripts
       broadcastToAllTabs({
         action: 'restartAnimation',
         restartTimestamp: timestamp
@@ -828,19 +798,39 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Apply wave animation to title
       if (titleElement) {
-        // Clear any existing content
-        titleElement.innerHTML = '';
-        titleElement.className = 'wave-text';
-        
-        // Create animation for each character
-        const titleText = 'Can Opener';
-        [...titleText].forEach((char, index) => {
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.className = char === ' ' ? 'chroma-char space-char' : 'chroma-char';
-          span.style.setProperty('--char-index', index);
-          titleElement.appendChild(span);
-        });
+        // Only rebuild the title if it's not already set up with chroma-chars
+        if (!titleElement.querySelector('.chroma-char')) {
+          // Clear any existing content
+          titleElement.innerHTML = '';
+          titleElement.className = 'wave-text';
+          
+          // Create animation for each character
+          const titleText = 'Can Opener';
+          [...titleText].forEach((char, index) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.className = char === ' ' ? 'chroma-char space-char' : 'chroma-char';
+            span.style.setProperty('--char-index', index);
+            
+            // Set initial color to avoid white flash
+            const initialColor = getColorForIndex(index);
+            span.style.color = initialColor;
+            
+            titleElement.appendChild(span);
+          });
+        } else {
+          // If characters already exist, make sure they have the wave-text class
+          titleElement.className = 'wave-text';
+          
+          // Update any character indexes and ensure animations are applied
+          titleElement.querySelectorAll('.chroma-char').forEach((span, index) => {
+            span.style.setProperty('--char-index', index);
+            
+            // Set initial color to avoid white flash
+            const initialColor = getColorForIndex(index);
+            span.style.color = initialColor;
+          });
+        }
       }
     } else {
       effectIndicator.innerHTML = '<span>STATIC</span>';
@@ -887,6 +877,11 @@ document.addEventListener('DOMContentLoaded', function() {
             span.style.color = currentColor;
             titleElement.appendChild(span);
           });
+        } else {
+          // Update the color of existing static spans
+          titleElement.querySelectorAll('.static-char').forEach(span => {
+            span.style.color = currentColor;
+          });
         }
       }
     }
@@ -905,6 +900,43 @@ document.addEventListener('DOMContentLoaded', function() {
         titleElement.style.filter = 'grayscale(70%)';
       }
     }
+  }
+  
+  // Helper function to get color for a specific character index
+  function getColorForIndex(index) {
+    // Define the color positions in the cycle (matching our keyframes)
+    const colors = [
+      '#ff0000', // Red - 0%
+      '#ff4000', // Red-Orange - 8.333%
+      '#ff8000', // Orange - 16.666%
+      '#ffff00', // Yellow - 25%
+      '#80ff00', // Yellow-Green - 33.333%
+      '#00ff00', // Green - 41.666%
+      '#00ff80', // Green-Cyan - 50%
+      '#00ffff', // Cyan - 58.333%
+      '#0080ff', // Light Blue - 66.666%
+      '#0000ff', // Blue - 75%
+      '#8000ff', // Indigo - 83.333%
+      '#ff00ff', // Magenta - 91.666%
+      '#ff0000'  // Red - 100% (same as 0% for looping)
+    ];
+    
+    // Get delay factor from CSS variable
+    const root = document.documentElement;
+    const computedStyle = getComputedStyle(root);
+    const delayFactor = parseFloat(computedStyle.getPropertyValue('--animation-delay-factor')) || 0.05;
+    
+    // Calculate position in the animation based on index
+    const position = (index * delayFactor) % 1; // Normalize to 0-1 range
+    
+    // Find the closest color based on position in animation cycle
+    const position12 = position * 12; // Scale to 0-12 range for our 12 colors
+    const lowerIndex = Math.floor(position12);
+    const upperIndex = Math.ceil(position12) % colors.length;
+    const blend = position12 - lowerIndex;
+    
+    // Simple color interpolation
+    return blend < 0.5 ? colors[lowerIndex] : colors[upperIndex];
   }
   
   // Helper function to convert hex color to rgba
@@ -1567,151 +1599,171 @@ document.addEventListener('DOMContentLoaded', function() {
     return `${days} day${days > 1 ? 's' : ''} ago`;
   };
   
-  // Find function for applying address styles and update it
-  function applyAddressStyle(element) {
-    if (!element || !element.textContent) return;
+  // Function to add wave effect to an element
+  function applyWaveEffect(element, text, settings) {
+    if (!element) return;
     
-    const originalText = element.textContent.trim();
-    element.dataset.originalText = originalText;
+    // Clear the element
     element.innerHTML = '';
     
-    // Add wave-text class to container for staggered animation
-    element.classList.add('wave-text');
+    // Add chroma-wave class for styling
+    element.classList.add('chroma-wave', 'wave-text');
     
-    // Split the text into characters and apply individual delays for wave effect
-    [...originalText].forEach((char, index) => {
+    // Create span for each character
+    [...text].forEach((char, index) => {
       const span = document.createElement('span');
       span.textContent = char;
-      span.className = 'chroma-char';
-      
-      // Set character index as a CSS variable for staggered animation
+      span.className = char === ' ' ? 'chroma-char space-char' : 'chroma-char';
       span.style.setProperty('--char-index', index);
+      
+      // Set initial color to avoid white flash
+      const initialColor = getColorForIndex(index);
+      span.style.color = initialColor;
       
       element.appendChild(span);
     });
-    
-    // Add the chroma-wave class which can be used as a hook for GPU acceleration
-    element.classList.add('chroma-wave');
   }
   
-  // Load recent addresses
-  function loadRecentAddresses() {
-  // Fetch recent addresses from storage
-  chrome.storage.local.get(['recentAddresses', 'settings'], function(result) {
-    const recentAddresses = result.recentAddresses || [];
-    const settings = result.settings || defaultSettings;
+  // Modified function to build token info with proper wave effect
+  function buildTokenInfo(item, settings) {
+    // Create a container for token info
+    const tokenContainer = document.createElement('div');
+    tokenContainer.className = 'token-container';
     
-    // Clear loading message
-    recentAddressesList.innerHTML = '';
-    
-    if (recentAddresses.length === 0) {
-      // Show empty state
-      recentAddressesList.innerHTML = `
-        <div class="empty-state">
-                History is empty. Tokens will appear here after clicking addresses online.
-        </div>
-      `;
-      return;
+    // Add token logo if available
+    if (item.tokenMetadata && item.tokenMetadata.logoURI) {
+      const tokenLogo = document.createElement('img');
+      tokenLogo.src = item.tokenMetadata.logoURI;
+      tokenLogo.className = 'token-logo';
+      tokenLogo.onerror = function() {
+        // If logo fails to load, hide it
+        this.style.display = 'none';
+      };
+      tokenContainer.appendChild(tokenLogo);
+    } else {
+      // Create placeholder logo
+      const placeholderLogo = document.createElement('div');
+      placeholderLogo.className = 'token-logo-placeholder';
+      placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
+        ? item.tokenMetadata.symbol.charAt(0) 
+        : '?';
+      tokenContainer.appendChild(placeholderLogo);
     }
     
-    // Create address items
-    recentAddresses.forEach(item => {
-      const addressItem = document.createElement('div');
-      addressItem.className = 'address-item';
+    // Create token info container
+    const tokenInfo = document.createElement('div');
+    tokenInfo.className = 'token-info';
+    
+    // Add token name and symbol
+    if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
+      // Token name - dynamic based on wave effect setting
+      const tokenName = document.createElement('div');
+      tokenName.className = 'token-name';
       
-      const addressLink = document.createElement('a');
-      addressLink.className = 'address-link';
-      addressLink.href = buildTradingSiteUrl(item.address, settings.tradingSite);
-      addressLink.target = '_blank';
-      addressLink.rel = 'noopener noreferrer';
+      if (settings.waveEffect) {
+        // Apply wave effect properly
+        applyWaveEffect(tokenName, item.tokenMetadata.name, settings);
+      } else {
+        // Static color mode
+        tokenName.textContent = item.tokenMetadata.name;
+        tokenName.style.color = settings.staticColor;
+      }
       
-        // Create a container for token info
-        const tokenContainer = document.createElement('div');
-        tokenContainer.className = 'token-container';
+      tokenInfo.appendChild(tokenName);
+      
+      // Token symbol (no animation)
+      const tokenSymbol = document.createElement('div');
+      tokenSymbol.className = 'token-symbol';
+      tokenSymbol.textContent = item.tokenMetadata.symbol;
+      tokenInfo.appendChild(tokenSymbol);
+    } else {
+      // Display "Unknown Token" for unrecognized tokens
+      const tokenName = document.createElement('div');
+      tokenName.className = 'token-name';
+      tokenName.textContent = 'Unknown Token';
+      tokenInfo.appendChild(tokenName);
+    }
+    
+    tokenContainer.appendChild(tokenInfo);
+    return tokenContainer;
+  }
+  
+  function loadRecentAddresses() {
+    chrome.storage.local.get(['recentAddresses', 'settings'], function(data) {
+      const recentAddressesList = document.getElementById('recent-addresses-list');
+      if (!recentAddressesList) return;
+      
+      recentAddressesList.innerHTML = '';
+      
+      const recentAddresses = data.recentAddresses || [];
+      const settings = data.settings || defaultSettings;
+      
+      if (recentAddresses.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'No addresses viewed yet';
+        recentAddressesList.appendChild(emptyState);
+        return;
+      }
+      
+      recentAddresses.forEach(item => {
+        const addressItem = document.createElement('div');
+        addressItem.className = 'address-item';
         
-        // Add token logo if available
-        if (item.tokenMetadata && item.tokenMetadata.logoURI) {
-          const tokenLogo = document.createElement('img');
-          tokenLogo.src = item.tokenMetadata.logoURI;
-          tokenLogo.className = 'token-logo';
-          tokenLogo.onerror = function() {
-            // If logo fails to load, hide it
-            this.style.display = 'none';
-          };
-          tokenContainer.appendChild(tokenLogo);
-        } else {
-          // Create placeholder logo
-          const placeholderLogo = document.createElement('div');
-          placeholderLogo.className = 'token-logo-placeholder';
-          placeholderLogo.textContent = (item.tokenMetadata && item.tokenMetadata.symbol) 
-            ? item.tokenMetadata.symbol.charAt(0) 
-            : '?';
-          tokenContainer.appendChild(placeholderLogo);
-        }
+        const addressLink = document.createElement('a');
+        addressLink.className = 'address-link';
+        addressLink.href = item.url || '#';
         
-        // Create token info container
-        const tokenInfo = document.createElement('div');
-        tokenInfo.className = 'token-info';
-        
-        // Add token name and symbol
-        if (item.tokenMetadata && (item.tokenMetadata.name !== 'Unknown Token' || item.tokenMetadata.symbol !== '???')) {
-          // Token name - dynamic based on wave effect setting
-          const tokenName = document.createElement('div');
-          
-          if (settings.waveEffect) {
-            // Apply wave effect to token name
-            tokenName.className = 'token-name chroma-wave wave-text';
-            
-            // Split token name into characters for the wave effect
-            const nameChars = item.tokenMetadata.name.split('');
-            nameChars.forEach((char, index) => {
-              const span = document.createElement('span');
-              span.textContent = char;
-              // Set character index for staggered animation
-              span.style.setProperty('--char-index', index);
-              span.className = 'chroma-char';
-              tokenName.appendChild(span);
-            });
-          } else {
-            // Static color mode
-            tokenName.className = 'token-name';
-            tokenName.textContent = item.tokenMetadata.name;
-            tokenName.style.color = settings.staticColor;
-          }
-          
-          tokenInfo.appendChild(tokenName);
-          
-          // Token symbol (no animation)
-          const tokenSymbol = document.createElement('div');
-          tokenSymbol.className = 'token-symbol';
-          tokenSymbol.textContent = item.tokenMetadata.symbol;
-          tokenInfo.appendChild(tokenSymbol);
-        } else {
-          // Display "Unknown Token" for unrecognized tokens
-          const tokenName = document.createElement('div');
-          tokenName.className = 'token-name';
-          tokenName.textContent = 'Unknown Token';
-          tokenInfo.appendChild(tokenName);
-        }
-        
-        tokenContainer.appendChild(tokenInfo);
+        // Add token container with improved wave effect
+        const tokenContainer = buildTokenInfo(item, settings);
         addressLink.appendChild(tokenContainer);
+        
+        // Add the address text with proper truncation
+        if (item.address) {
+          const addressHint = document.createElement('div');
+          addressHint.className = 'address-hint';
+          
+          // Format address nicely (truncate middle)
+          const formattedAddress = `${item.address.substring(0, 8)}...${item.address.substring(item.address.length - 8)}`;
+          addressHint.textContent = formattedAddress;
+          addressLink.appendChild(addressHint);
+        }
+        
+        // Add page title if available
+        if (item.pageTitle) {
+          const pageTitle = document.createElement('div');
+          pageTitle.className = 'page-title';
+          pageTitle.textContent = item.pageTitle;
+          addressLink.appendChild(pageTitle);
+        }
+        
         addressItem.appendChild(addressLink);
-      
-      // Add timestamp
-      const timestamp = document.createElement('div');
-      timestamp.className = 'timestamp';
-      timestamp.textContent = formatRelativeTime(item.timestamp);
-      addressItem.appendChild(timestamp);
+        
+        // Add timestamp
+        const timestamp = document.createElement('div');
+        timestamp.className = 'timestamp';
+        timestamp.textContent = formatRelativeTime(item.timestamp);
+        addressItem.appendChild(timestamp);
         
         // Add click handler to open the URL since we disabled pointer-events on the inner link
         addressItem.addEventListener('click', function() {
           window.open(addressLink.href, '_blank');
         });
+        
+        recentAddressesList.appendChild(addressItem);
+      });
       
-      recentAddressesList.appendChild(addressItem);
+      // Apply greyed-out styling if extension is inactive
+      if (!isExtensionActive) {
+        recentAddressesList.querySelectorAll('.chroma-char').forEach(span => {
+          span.classList.add('greyed-out');
+          span.style.animation = 'none';
+          span.style.opacity = '0.4';
+          span.style.filter = 'grayscale(70%)';
+          span.style.color = '#888';
+        });
+      }
     });
-  });
   }
   
   // Start initializing the UI

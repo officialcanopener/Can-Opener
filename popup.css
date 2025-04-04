@@ -138,7 +138,6 @@ h1 {
 /* Style for individual characters in the title when in wave mode */
 h1.wave-text {
   flex-wrap: nowrap;
-  color: #ff0000; /* Make initial color match first animation keyframe */
 }
 
 /* Style for individual characters in title */
@@ -328,8 +327,6 @@ h1.wave-text {
   animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart);
   border-color: #ff00ff;
-  background-color: rgba(255, 0, 0, 0.3); /* Match initial animation state */
-  color: #ff0000; /* Match initial animation state */
   
   /* GPU acceleration for smoother animation */
   -webkit-font-smoothing: antialiased;
@@ -344,8 +341,6 @@ h1.wave-text {
   animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart);
   border-color: #ff00ff;
-  background-color: rgba(255, 0, 0, 0.3); /* Match initial animation state */
-  color: #ff0000; /* Match initial animation state */
   
   /* GPU acceleration for smoother animation */
   -webkit-font-smoothing: antialiased;
@@ -504,55 +499,52 @@ input:checked + .slider:before {
 /* Create a single synchronized animation for all wave effects */
 @keyframes syncedChromaWave {
   0% { color: #ff0000; } /* Red */
-  8.33% { color: #ff4000; } /* Red-Orange */
-  16.67% { color: #ff8000; } /* Orange */
+  8.333% { color: #ff4000; } /* Red-Orange */
+  16.666% { color: #ff8000; } /* Orange */
   25% { color: #ffff00; } /* Yellow */
-  33.33% { color: #80ff00; } /* Yellow-Green */
-  41.67% { color: #00ff00; } /* Green */
+  33.333% { color: #80ff00; } /* Yellow-Green */
+  41.666% { color: #00ff00; } /* Green */
   50% { color: #00ff80; } /* Green-Cyan */
-  58.33% { color: #00ffff; } /* Cyan */
-  66.67% { color: #0080ff; } /* Light Blue */
+  58.333% { color: #00ffff; } /* Cyan */
+  66.666% { color: #0080ff; } /* Light Blue */
   75% { color: #0000ff; } /* Blue */
-  83.33% { color: #8000ff; } /* Indigo */
-  91.67% { color: #ff00ff; } /* Magenta */
-  98% { color: #ff0080; } /* Pink */
-  100% { color: #ff0000; } /* Back to Red - exact same as start */
+  83.333% { color: #8000ff; } /* Indigo */
+  91.666% { color: #ff00ff; } /* Magenta */
+  100% { color: #ff0000; } /* Back to Red - must match 0% for seamless loop */
 }
 
 /* Background version with the same timing */
 @keyframes syncedChromaWaveBg {
   0% { background-color: rgba(255, 0, 0, 0.3); color: #ff0000; } /* Red */
-  8% { background-color: rgba(255, 64, 0, 0.3); color: #ff4000; } /* Red-Orange */
-  16% { background-color: rgba(255, 128, 0, 0.3); color: #ff8000; } /* Orange */
-  24% { background-color: rgba(255, 255, 0, 0.3); color: #ffff00; } /* Yellow */
-  32% { background-color: rgba(128, 255, 0, 0.3); color: #80ff00; } /* Yellow-Green */
-  40% { background-color: rgba(0, 255, 0, 0.3); color: #00ff00; } /* Green */
-  48% { background-color: rgba(0, 255, 128, 0.3); color: #00ff80; } /* Green-Cyan */
-  56% { background-color: rgba(0, 255, 255, 0.3); color: #00ffff; } /* Cyan */
-  64% { background-color: rgba(0, 128, 255, 0.3); color: #0080ff; } /* Light Blue */
-  72% { background-color: rgba(0, 0, 255, 0.3); color: #0000ff; } /* Blue */
-  80% { background-color: rgba(128, 0, 255, 0.3); color: #8000ff; } /* Indigo */
-  88% { background-color: rgba(255, 0, 255, 0.3); color: #ff00ff; } /* Magenta */
-  96% { background-color: rgba(255, 0, 128, 0.3); color: #ff0080; } /* Pink */
-  100% { background-color: rgba(255, 0, 0, 0.3); color: #ff0000; } /* Back to Red */
+  8.333% { background-color: rgba(255, 64, 0, 0.3); color: #ff4000; } /* Red-Orange */
+  16.666% { background-color: rgba(255, 128, 0, 0.3); color: #ff8000; } /* Orange */
+  25% { background-color: rgba(255, 255, 0, 0.3); color: #ffff00; } /* Yellow */
+  33.333% { background-color: rgba(128, 255, 0, 0.3); color: #80ff00; } /* Yellow-Green */
+  41.666% { background-color: rgba(0, 255, 0, 0.3); color: #00ff00; } /* Green */
+  50% { background-color: rgba(0, 255, 128, 0.3); color: #00ff80; } /* Green-Cyan */
+  58.333% { background-color: rgba(0, 255, 255, 0.3); color: #00ffff; } /* Cyan */
+  66.666% { background-color: rgba(0, 128, 255, 0.3); color: #0080ff; } /* Light Blue */
+  75% { background-color: rgba(0, 0, 255, 0.3); color: #0000ff; } /* Blue */
+  83.333% { background-color: rgba(128, 0, 255, 0.3); color: #8000ff; } /* Indigo */
+  91.666% { background-color: rgba(255, 0, 255, 0.3); color: #ff00ff; } /* Magenta */
+  100% { background-color: rgba(255, 0, 0, 0.3); color: #ff0000; } /* Back to Red - must match 0% */
 }
 
 /* Border version with the same timing */
 @keyframes syncedChromaWaveBorder {
   0% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; } /* Red */
-  8% { background-color: rgba(255, 64, 0, 0.3); border-color: #ff4000; } /* Red-Orange */
-  16% { background-color: rgba(255, 128, 0, 0.3); border-color: #ff8000; } /* Orange */
-  24% { background-color: rgba(255, 255, 0, 0.3); border-color: #ffff00; } /* Yellow */
-  32% { background-color: rgba(128, 255, 0, 0.3); border-color: #80ff00; } /* Yellow-Green */
-  40% { background-color: rgba(0, 255, 0, 0.3); border-color: #00ff00; } /* Green */
-  48% { background-color: rgba(0, 255, 128, 0.3); border-color: #00ff80; } /* Green-Cyan */
-  56% { background-color: rgba(0, 255, 255, 0.3); border-color: #00ffff; } /* Cyan */
-  64% { background-color: rgba(0, 128, 255, 0.3); border-color: #0080ff; } /* Light Blue */
-  72% { background-color: rgba(0, 0, 255, 0.3); border-color: #0000ff; } /* Blue */
-  80% { background-color: rgba(128, 0, 255, 0.3); border-color: #8000ff; } /* Indigo */
-  88% { background-color: rgba(255, 0, 255, 0.3); border-color: #ff00ff; } /* Magenta */
-  96% { background-color: rgba(255, 0, 128, 0.3); border-color: #ff0080; } /* Pink */
-  100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; } /* Back to Red */
+  8.333% { background-color: rgba(255, 64, 0, 0.3); border-color: #ff4000; } /* Red-Orange */
+  16.666% { background-color: rgba(255, 128, 0, 0.3); border-color: #ff8000; } /* Orange */
+  25% { background-color: rgba(255, 255, 0, 0.3); border-color: #ffff00; } /* Yellow */
+  33.333% { background-color: rgba(128, 255, 0, 0.3); border-color: #80ff00; } /* Yellow-Green */
+  41.666% { background-color: rgba(0, 255, 0, 0.3); border-color: #00ff00; } /* Green */
+  50% { background-color: rgba(0, 255, 128, 0.3); border-color: #00ff80; } /* Green-Cyan */
+  58.333% { background-color: rgba(0, 255, 255, 0.3); border-color: #00ffff; } /* Cyan */
+  66.666% { background-color: rgba(0, 128, 255, 0.3); border-color: #0080ff; } /* Light Blue */
+  75% { background-color: rgba(0, 0, 255, 0.3); border-color: #0000ff; } /* Blue */
+  83.333% { background-color: rgba(128, 0, 255, 0.3); border-color: #8000ff; } /* Indigo */
+  91.666% { background-color: rgba(255, 0, 255, 0.3); border-color: #ff00ff; } /* Magenta */
+  100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; } /* Back to Red - must match 0% */
 }
 
 /* Update characters to use the synced animation but without a delay (no wave effect) */
@@ -561,14 +553,11 @@ input:checked + .slider:before {
   animation: syncedChromaWave var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart); /* Base delay for sync */
   will-change: color;
-  color: #ff0000; /* Set initial color to match first keyframe */
 }
 
 /* Staggered animation for text characters (wave effect) */
 .wave-text .chroma-char {
   animation-delay: calc(var(--animation-restart) + var(--char-index, 0) * var(--animation-delay-factor));
-  backface-visibility: hidden;
-  transform: translateZ(0); /* Force GPU acceleration */
 }
 
 /* Update active site buttons to use the synced animation */
@@ -695,7 +684,6 @@ h2 {
   animation: syncedChromaWave var(--animation-speed) linear infinite;
   animation-delay: var(--animation-restart); /* Base delay for sync */
   will-change: color;
-  color: #ff0000; /* Set initial color to match first keyframe */
 }
 
 .chroma-wave {
@@ -966,25 +954,23 @@ h2 {
 /* Helper class for animation restart */
 .force-animation-restart * {
   animation-name: none !important; /* Temporarily disable all animations */
-  color: #ff0000 !important; /* Match the color to the restart point */
 }
 
 /* Border and text version with the same timing */
 @keyframes syncedChromaWaveBorderText {
   0% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; color: #ff0000; } /* Red */
-  8.33% { background-color: rgba(255, 64, 0, 0.3); border-color: #ff4000; color: #ff4000; } /* Red-Orange */
-  16.67% { background-color: rgba(255, 128, 0, 0.3); border-color: #ff8000; color: #ff8000; } /* Orange */
+  8.333% { background-color: rgba(255, 64, 0, 0.3); border-color: #ff4000; color: #ff4000; } /* Red-Orange */
+  16.666% { background-color: rgba(255, 128, 0, 0.3); border-color: #ff8000; color: #ff8000; } /* Orange */
   25% { background-color: rgba(255, 255, 0, 0.3); border-color: #ffff00; color: #ffff00; } /* Yellow */
-  33.33% { background-color: rgba(128, 255, 0, 0.3); border-color: #80ff00; color: #80ff00; } /* Yellow-Green */
-  41.67% { background-color: rgba(0, 255, 0, 0.3); border-color: #00ff00; color: #00ff00; } /* Green */
+  33.333% { background-color: rgba(128, 255, 0, 0.3); border-color: #80ff00; color: #80ff00; } /* Yellow-Green */
+  41.666% { background-color: rgba(0, 255, 0, 0.3); border-color: #00ff00; color: #00ff00; } /* Green */
   50% { background-color: rgba(0, 255, 128, 0.3); border-color: #00ff80; color: #00ff80; } /* Green-Cyan */
-  58.33% { background-color: rgba(0, 255, 255, 0.3); border-color: #00ffff; color: #00ffff; } /* Cyan */
-  66.67% { background-color: rgba(0, 128, 255, 0.3); border-color: #0080ff; color: #0080ff; } /* Light Blue */
+  58.333% { background-color: rgba(0, 255, 255, 0.3); border-color: #00ffff; color: #00ffff; } /* Cyan */
+  66.666% { background-color: rgba(0, 128, 255, 0.3); border-color: #0080ff; color: #0080ff; } /* Light Blue */
   75% { background-color: rgba(0, 0, 255, 0.3); border-color: #0000ff; color: #0000ff; } /* Blue */
-  83.33% { background-color: rgba(128, 0, 255, 0.3); border-color: #8000ff; color: #8000ff; } /* Indigo */
-  91.67% { background-color: rgba(255, 0, 255, 0.3); border-color: #ff00ff; color: #ff00ff; } /* Magenta */
-  98% { background-color: rgba(255, 0, 128, 0.3); border-color: #ff0080; color: #ff0080; } /* Pink */
-  100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; color: #ff0000; } /* Back to Red - exact same as start */
+  83.333% { background-color: rgba(128, 0, 255, 0.3); border-color: #8000ff; color: #8000ff; } /* Indigo */
+  91.666% { background-color: rgba(255, 0, 255, 0.3); border-color: #ff00ff; color: #ff00ff; } /* Magenta */
+  100% { background-color: rgba(255, 0, 0, 0.3); border-color: #ff0000; color: #ff0000; } /* Back to Red - must match 0% */
 }
 
 /* Prevent text selection throughout the popup */
