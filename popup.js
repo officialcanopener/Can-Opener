@@ -590,63 +590,73 @@ document.addEventListener('DOMContentLoaded', function() {
       // Static color picker
       staticColorPicker.addEventListener('input', function() {
         const newColor = this.value;
-        settings.staticColor = newColor;
+        console.log("Color changed to:", newColor);
         
-        // Only update if in static mode
-        if (!settings.waveEffect) {
-          // Apply direct color changes to all necessary elements
+        // Get current settings
+        chrome.storage.local.get('settings', function(data) {
+          const settings = data.settings || defaultSettings;
+          settings.staticColor = newColor;
           
-          // Update STATIC button directly
-          const effectBtn = document.getElementById('effect-indicator');
-          if (effectBtn) {
-            effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
-            effectBtn.style.color = newColor;
-            effectBtn.style.borderColor = newColor;
-          }
-          
-          // Update title text spans
-          const titleEl = document.getElementById('title-text');
-          if (titleEl) {
-            // First, ensure title has the correct structure for static mode
-            if (!titleEl.querySelector('.static-char')) {
-              // Rebuild the title with static spans if needed
-              titleEl.innerHTML = '';
-              const titleText = 'Can Opener';
-              [...titleText].forEach(char => {
-                const span = document.createElement('span');
-                span.textContent = char;
-                span.className = char === ' ' ? 'static-char space-char' : 'static-char';
-                span.style.color = newColor;
-                titleEl.appendChild(span);
-              });
-            } else {
-              // Update existing static spans
-              titleEl.querySelectorAll('.static-char').forEach(span => {
-                span.style.color = newColor;
-              });
+          // Only update if in static mode
+          if (!settings.waveEffect) {
+            // Apply direct color changes to all necessary elements
+            
+            // Update STATIC button directly
+            const effectBtn = document.getElementById('effect-indicator');
+            if (effectBtn) {
+              effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
+              effectBtn.style.color = newColor;
+              effectBtn.style.borderColor = newColor;
             }
+            
+            // Update title text spans
+            const titleEl = document.getElementById('title-text');
+            if (titleEl) {
+              // First, ensure title has the correct structure for static mode
+              if (!titleEl.querySelector('.static-char')) {
+                // Rebuild the title with static spans if needed
+                titleEl.innerHTML = '';
+                const titleText = 'Can Opener';
+                [...titleText].forEach(char => {
+                  const span = document.createElement('span');
+                  span.textContent = char;
+                  span.className = char === ' ' ? 'static-char space-char' : 'static-char';
+                  span.style.color = newColor;
+                  titleEl.appendChild(span);
+                });
+              } else {
+                // Update existing static spans
+                titleEl.querySelectorAll('.static-char').forEach(span => {
+                  span.style.color = newColor;
+                });
+              }
+            }
+            
+            // Update site buttons - ensure active site button gets updated
+            const activeSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+            if (activeSiteButton) {
+              activeSiteButton.style.animation = 'none';
+              activeSiteButton.style.backgroundColor = hexToRgba(newColor, 0.2);
+              activeSiteButton.style.borderColor = newColor;
+            }
+            
+            // Update token names
+            document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
+              tokenName.style.color = newColor;
+            });
+            
+            document.querySelectorAll('.token-name .static-char').forEach(span => {
+              span.style.color = newColor;
+            });
+            
+            // Mark refresh needed
+            refreshNeeded = true;
+            showRefreshNotification();
           }
           
-          // Update site buttons
-          const activeSiteButton = document.querySelector('.site-button.active');
-          if (activeSiteButton) {
-            activeSiteButton.style.animation = 'none';
-            activeSiteButton.style.backgroundColor = hexToRgba(newColor, 0.2);
-            activeSiteButton.style.borderColor = newColor;
-          }
-          
-          // Update token names
-          document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
-            tokenName.style.color = newColor;
-          });
-          
-          document.querySelectorAll('.token-name .static-char').forEach(span => {
-            span.style.color = newColor;
-          });
-        }
-        
-        // Save the new settings
-        saveSettings(settings);
+          // Save the new settings
+          saveSettings(settings);
+        });
       });
       
       // Trading site selector
@@ -1143,6 +1153,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedLabel) {
           selectedLabel.style.display = 'block';
         }
+      } else {
+        // If button not found, update the hidden select at least
+        const tradingSiteSelect = document.getElementById('trading-site');
+        if (tradingSiteSelect) {
+          tradingSiteSelect.value = settings.tradingSite;
+        }
       }
       
       // --------------------------------
@@ -1174,13 +1190,21 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to save settings
   function saveSettings(settings) {
     safelyExecuteChromeAPI(() => {
-    chrome.storage.local.set({ settings: settings }, function() {
+      chrome.storage.local.set({ settings: settings }, function() {
         try {
           // Check if this is just a color change in static mode
           const isJustColorChange = settings.waveEffect === false && 
                                    document.activeElement === staticColorPicker;
           
-          if (!isJustColorChange) {
+          if (isJustColorChange) {
+            // For color changes in static mode, ensure the site button gets updated
+            const currentSiteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+            if (currentSiteButton) {
+              currentSiteButton.style.animation = 'none';
+              currentSiteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+              currentSiteButton.style.borderColor = settings.staticColor;
+            }
+          } else {
             // For other changes, update the full UI
             updateUI(settings);
           }
