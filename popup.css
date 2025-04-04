@@ -731,6 +731,25 @@ h2 {
   transition: transform 0.08s ease-out; /* Even faster for active state */
 }
 
+/* Add specific styles for speed button wrappers */
+.speed-selector .button-wrapper {
+  display: inline-block;
+  cursor: pointer !important;
+  position: relative;
+  pointer-events: auto !important; /* Ensure pointer events are enabled */
+  z-index: 1; /* Add z-index to prevent layering issues */
+}
+
+.speed-selector .button-wrapper:hover {
+  filter: brightness(1.25);
+  transform: scale(1.05);
+}
+
+.speed-selector .button-wrapper:active {
+  transform: scale(0.95);
+  transition: transform 0.08s ease-out; /* Faster for active state */
+}
+
 /* Site buttons hover/animations using button-wrapper */
 .site-button-group .button-wrapper {
   display: inline-block;
@@ -798,13 +817,12 @@ h2 {
   border-radius: 8px;
   font-size: 14px;
   background-color: #2a2a2a;
-  cursor: pointer !important;
   transition: all 0.15s ease; /* Faster transition for snappier feel */
   width: 24px;
   text-align: center;
   border: 2px solid transparent;
   user-select: none;
-  pointer-events: none; /* Disable pointer events since the wrapper handles this */
+  pointer-events: none; /* Keep this to ensure the wrapper handles events */
 }
 
 /* Remove hover/active effects from the speed-option itself */
@@ -894,7 +912,8 @@ h1, h2, h3,
 .button-wrapper,
 .status-banner.refresh-required,
 .address-item,
-.speed-option,
+/* Remove direct reference to speed-option since it has pointer-events: none */
+/* .speed-option, */
 input[type="color"] {
   cursor: pointer !important;
 }
