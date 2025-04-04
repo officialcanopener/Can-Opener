@@ -567,123 +567,144 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (effectWrapper) {
       effectWrapper.addEventListener('click', function() {
-        // Only allow clicking if extension is active
-        if (!isExtensionActive) return;
-        
-        // Rotate through the three states: WAVE -> FAST -> STATIC -> WAVE
-        if (settings.waveEffect) {
-          if (!settings.fastMode) {
-            // Change from WAVE to FAST (still wave effect, but with fast speed)
-            settings.fastMode = true;
-            // Keep waveEffect as true
-          } else {
-            // Change from FAST to STATIC
-            settings.waveEffect = false;
-            settings.fastMode = false;
-          }
-        } else {
-          // Change from STATIC to WAVE
-          settings.waveEffect = true;
-          settings.fastMode = false;
-        }
-        
-        // Update flags for immediate response
-        isWaveEffect = settings.waveEffect;
-        isFastMode = settings.fastMode;
-        
-        // Update UI immediately
-        updateEffectIndicator(settings);
-        
-        // If wave effect is enabled, restart animations
-        if (settings.waveEffect) {
-          // Apply animation speed based on fast mode setting
-          const animSpeed = settings.fastMode ? 'fast' : 'medium';
-          applyAnimationSpeed(animSpeed);
+        // Get the latest settings to ensure we're working with current state
+        chrome.storage.local.get('settings', function(data) {
+          // Use the stored settings or default if not available
+          const currentSettings = data.settings || defaultSettings;
           
-          restartAllAnimations();
-        }
-        
-        // Save settings
-        saveSettings(settings);
-        
-        // Send message to background script to update content scripts
-        chrome.runtime.sendMessage({
-          action: 'updateEffectType',
-          waveEffect: settings.waveEffect,
-          staticColor: settings.staticColor,
-          fastMode: settings.fastMode
+          // Only allow clicking if extension is active
+          if (!currentSettings.extensionActive) return;
+          
+          console.log('Current state before toggle:', 
+            currentSettings.waveEffect ? (currentSettings.fastMode ? 'FAST' : 'WAVE') : 'STATIC');
+          
+          // Rotate through the three states: WAVE -> FAST -> STATIC -> WAVE
+          if (currentSettings.waveEffect) {
+            if (!currentSettings.fastMode) {
+              // Change from WAVE to FAST (still wave effect, but with fast speed)
+              currentSettings.fastMode = true;
+              // Keep waveEffect as true
+              console.log('Changing to FAST');
+            } else {
+              // Change from FAST to STATIC
+              currentSettings.waveEffect = false;
+              currentSettings.fastMode = false;
+              console.log('Changing to STATIC');
+            }
+          } else {
+            // Change from STATIC to WAVE
+            currentSettings.waveEffect = true;
+            currentSettings.fastMode = false;
+            console.log('Changing to WAVE');
+          }
+          
+          // Update flags for immediate response
+          isWaveEffect = currentSettings.waveEffect;
+          isFastMode = currentSettings.fastMode;
+          
+          // Update UI immediately
+          updateEffectIndicator(currentSettings);
+          
+          // If wave effect is enabled, restart animations
+          if (currentSettings.waveEffect) {
+            // Apply animation speed based on fast mode setting
+            const animSpeed = currentSettings.fastMode ? 'fast' : 'medium';
+            applyAnimationSpeed(animSpeed);
+            
+            restartAllAnimations();
+          }
+          
+          // Save settings
+          saveSettings(currentSettings);
+          
+          // Send message to background script to update content scripts
+          chrome.runtime.sendMessage({
+            action: 'updateEffectType',
+            waveEffect: currentSettings.waveEffect,
+            staticColor: currentSettings.staticColor,
+            fastMode: currentSettings.fastMode
+          });
+          
+          // Mark for refresh to ensure content scripts are updated
+          refreshNeeded = true;
+          showRefreshNotification();
         });
-        
-        // Mark for refresh to ensure content scripts are updated
-        refreshNeeded = true;
-        showRefreshNotification();
       });
     }
     
     // Static color picker
     staticColorPicker.addEventListener('input', function() {
       const newColor = this.value;
-      settings.staticColor = newColor;
       
-      // Only update if in static mode
-      if (!settings.waveEffect) {
-        // Apply direct color changes to all necessary elements
+      // Get current settings from storage
+      chrome.storage.local.get('settings', function(data) {
+        const currentSettings = data.settings || defaultSettings;
+        currentSettings.staticColor = newColor;
         
-        // Update STATIC button directly
-        const effectBtn = document.getElementById('effect-indicator');
-        if (effectBtn) {
-          effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
-          effectBtn.style.color = newColor;
-          effectBtn.style.borderColor = newColor;
-        }
-        
-        // Update title text spans
-        const titleEl = document.getElementById('title-text');
-        if (titleEl) {
-          // First, ensure title has the correct structure for static mode
-          if (!titleEl.querySelector('.static-char')) {
-            // Rebuild the title with static spans if needed
-            titleEl.innerHTML = '';
-            const titleText = 'Can Opener';
-            [...titleText].forEach(char => {
-              const span = document.createElement('span');
-              span.textContent = char;
-              span.className = char === ' ' ? 'static-char space-char' : 'static-char';
-              span.style.color = newColor;
-              titleEl.appendChild(span);
-            });
-          } else {
-            // Update existing static spans
-            titleEl.querySelectorAll('.static-char').forEach(span => {
-              span.style.color = newColor;
-            });
+        // Only update if in static mode
+        if (!currentSettings.waveEffect) {
+          // Apply direct color changes to all necessary elements
+          
+          // Update STATIC button directly
+          const effectBtn = document.getElementById('effect-indicator');
+          if (effectBtn) {
+            effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
+            effectBtn.style.color = newColor;
+            effectBtn.style.borderColor = newColor;
           }
+          
+          // Update title text spans
+          const titleEl = document.getElementById('title-text');
+          if (titleEl) {
+            // First, ensure title has the correct structure for static mode
+            if (!titleEl.querySelector('.static-char')) {
+              // Rebuild the title with static spans if needed
+              titleEl.innerHTML = '';
+              const titleText = 'Can Opener';
+              [...titleText].forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.className = char === ' ' ? 'static-char space-char' : 'static-char';
+                span.style.color = newColor;
+                titleEl.appendChild(span);
+              });
+            } else {
+              // Update existing static spans
+              titleEl.querySelectorAll('.static-char').forEach(span => {
+                span.style.color = newColor;
+              });
+            }
+          }
+          
+          // Update site buttons
+          document.querySelectorAll('.site-button.active').forEach(btn => {
+            btn.style.backgroundColor = hexToRgba(newColor, 0.2);
+            btn.style.borderColor = newColor;
+          });
+          
+          // Update token names
+          document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
+            tokenName.style.color = newColor;
+          });
+          
+          document.querySelectorAll('.token-name .static-char').forEach(span => {
+            span.style.color = newColor;
+          });
         }
         
-        // Update site buttons
-        document.querySelectorAll('.site-button.active').forEach(btn => {
-          btn.style.backgroundColor = hexToRgba(newColor, 0.2);
-          btn.style.borderColor = newColor;
-        });
-        
-        // Update token names
-        document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
-          tokenName.style.color = newColor;
-        });
-        
-        document.querySelectorAll('.token-name .static-char').forEach(span => {
-          span.style.color = newColor;
-        });
-      }
-      
-      // Save the new settings
-      saveSettings(settings);
+        // Save the new settings
+        saveSettings(currentSettings);
+      });
     });
     
     // Trading site selector
     tradingSiteSelect.addEventListener('change', function() {
-      settings.tradingSite = this.value;
-      saveSettings(settings);
+      // Get current settings from storage
+      chrome.storage.local.get('settings', function(data) {
+        const currentSettings = data.settings || defaultSettings;
+        currentSettings.tradingSite = tradingSiteSelect.value;
+        saveSettings(currentSettings);
+      });
     });
   }
   
