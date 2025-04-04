@@ -403,10 +403,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const value = button.getAttribute('data-value');
         const siteName = button.getAttribute('data-name');
         
-        // Apply appropriate styles based on wave/static mode
+        // Get current settings to properly apply the right styling
         chrome.storage.local.get('settings', function(data) {
           const settings = data.settings || defaultSettings;
+          settings.tradingSite = value; // Update the selected trading site
           
+          // Apply appropriate styles based on current wave/static mode
           if (!settings.waveEffect) {
             // Static mode - use the selected color
             button.style.animation = 'none';
@@ -418,25 +420,28 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.backgroundColor = '';
             button.style.borderColor = '';
           }
+          
+          // Update site labels visibility
+          document.querySelectorAll('.site-name-label').forEach(label => {
+            label.style.display = 'none';
+          });
+          
+          // Show only the selected site's label
+          const selectedLabel = document.getElementById(`${value}-label`);
+          if (selectedLabel) {
+            selectedLabel.style.display = 'block';
+          }
+          
+          // Update hidden select
+          tradingSiteSelect.value = value;
+          
+          // Save settings to persist the selected site
+          saveSettings(settings);
+          
+          // Trigger change event on select
+          const event = new Event('change', { bubbles: true });
+          tradingSiteSelect.dispatchEvent(event);
         });
-        
-        // Update site labels visibility
-        document.querySelectorAll('.site-name-label').forEach(label => {
-          label.style.display = 'none';
-        });
-        
-        // Show only the selected site's label
-        const selectedLabel = document.getElementById(`${value}-label`);
-        if (selectedLabel) {
-          selectedLabel.style.display = 'block';
-        }
-        
-        // Update hidden select
-        tradingSiteSelect.value = value;
-        
-        // Trigger change event on select
-        const event = new Event('change', { bubbles: true });
-        tradingSiteSelect.dispatchEvent(event);
       });
     });
   }
@@ -677,8 +682,56 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Trading site selector
       tradingSiteSelect.addEventListener('change', function() {
-        settings.tradingSite = this.value;
-        saveSettings(settings);
+        // Get current settings
+        chrome.storage.local.get('settings', function(data) {
+          const settings = data.settings || defaultSettings;
+          
+          // Update the trading site setting
+          settings.tradingSite = tradingSiteSelect.value;
+          
+          // Find the corresponding button and update its appearance
+          const siteButton = document.querySelector(`.site-button[data-value="${settings.tradingSite}"]`);
+          if (siteButton) {
+            // Remove active class from all buttons first
+            document.querySelectorAll('.site-button').forEach(btn => {
+              btn.classList.remove('active');
+              // Clear any existing styles
+              btn.style.animation = '';
+              btn.style.backgroundColor = '';
+              btn.style.borderColor = '';
+            });
+            
+            // Add active class to the selected button
+            siteButton.classList.add('active');
+            
+            // Apply appropriate styling based on current mode
+            if (!settings.waveEffect) {
+              // Static mode
+              siteButton.style.animation = 'none';
+              siteButton.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
+              siteButton.style.borderColor = settings.staticColor;
+            } else {
+              // Wave mode
+              siteButton.style.animation = '';
+              siteButton.style.backgroundColor = '';
+              siteButton.style.borderColor = '';
+            }
+            
+            // Update site labels
+            document.querySelectorAll('.site-name-label').forEach(label => {
+              label.style.display = 'none';
+            });
+            
+            // Show only the selected site's label
+            const selectedLabel = document.getElementById(`${settings.tradingSite}-label`);
+            if (selectedLabel) {
+              selectedLabel.style.display = 'block';
+            }
+          }
+          
+          // Save the settings
+          saveSettings(settings);
+        });
       });
     } catch (error) {
       console.error('Error setting up event listeners:', error);
