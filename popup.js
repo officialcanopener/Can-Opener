@@ -137,48 +137,72 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to restart all animations in sync
   function restartAllAnimations() {
     try {
-      // Generate a random negative value for animation-restart
-      // This forces a complete animation restart by temporarily removing and re-adding animation
+      // Generate a timestamp to use as our sync point
       const timestamp = Date.now();
       const root = document.documentElement;
       
-      // Use the animation-delay property instead of forcing a complete animation restart
-      // This ensures a smooth transition even when the animation is restarted
+      // Use the animation-delay property for perfect synchronization
+      // This value will be the same for all elements so they start from the same point
       root.style.setProperty('--animation-restart', `-${timestamp % 1000}ms`);
       
-      // Instead of removing and readding animations (which can cause flickering),
-      // we'll just trigger a reflow to ensure the new animation-delay is applied
+      // Apply the same initial color to all animated elements based on the timestamp
+      const initialColor = getColorForTimestamp(timestamp);
+      
+      // Force a reflow to ensure the new animation-delay is applied
       void root.offsetWidth;
       
-      // Step 5: Check if we need to reapply the title animation
+      // Handle all the character spans in the title
       const titleElement = document.getElementById('title-text');
-      if (titleElement && titleElement.classList.contains('wave-text')) {
-        // Make sure we preserve any existing children
-        const existingChars = titleElement.querySelectorAll('.chroma-char');
-        if (existingChars.length > 0) {
-          // Only ensure the character indexes are properly set
-          existingChars.forEach((char, index) => {
-            char.style.setProperty('--char-index', index);
-          });
-        } else {
-          // If no characters exist yet, reapply wave effect
-          safelyExecuteChromeAPI(() => {
-            chrome.storage.local.get('settings', function(data) {
-              try {
-                const settings = data.settings || defaultSettings;
-                if (settings.waveEffect) {
-                  // Only reapply if still in wave mode
-                  updateEffectIndicator(settings);
-                }
-              } catch (error) {
-                console.warn('Error in animation settings callback:', error);
-              }
-            });
-          });
-        }
+      if (titleElement) {
+        synchronizeElement(titleElement, timestamp, initialColor);
       }
       
-      // Step 6: Broadcast restart message safely to content scripts
+      // Handle all the character spans in token names
+      document.querySelectorAll('.token-name.chroma-wave').forEach(element => {
+        synchronizeElement(element, timestamp, initialColor);
+      });
+      
+      // Handle all wave-active buttons (WAVE, FAST, status indicators)
+      document.querySelectorAll('.status-indicator.wave-active, .status-indicator.fast-mode').forEach(element => {
+        // For these elements, we need to restart their animations directly
+        element.style.animation = 'none';
+        void element.offsetWidth; // Force reflow
+        element.style.animation = '';
+        
+        // Apply initial color to match starting point
+        element.style.backgroundColor = `${initialColor}33`; // 33 = 20% opacity
+        element.style.color = initialColor;
+        element.style.borderColor = initialColor;
+      });
+      
+      // Handle all active speed options if they exist
+      document.querySelectorAll('.speed-option.active').forEach(element => {
+        // For these elements, we need to restart their animations directly
+        element.style.animation = 'none';
+        void element.offsetWidth; // Force reflow
+        element.style.animation = '';
+        
+        // Apply initial color to match starting point
+        element.style.backgroundColor = `${initialColor}33`; // 33 = 20% opacity
+        element.style.color = initialColor;
+        element.style.borderColor = initialColor;
+      });
+      
+      // Handle all active site buttons
+      document.querySelectorAll('.site-button.active').forEach(element => {
+        if (element.style.animation !== 'none') {
+          // For these elements, we need to restart their animations directly
+          element.style.animation = 'none';
+          void element.offsetWidth; // Force reflow
+          element.style.animation = '';
+          
+          // Apply initial color to match starting point
+          element.style.backgroundColor = `${initialColor}33`; // 33 = 20% opacity
+          element.style.borderColor = initialColor;
+        }
+      });
+      
+      // Broadcast restart message to content scripts
       broadcastToAllTabs({
         action: 'restartAnimation',
         restartTimestamp: timestamp
@@ -186,6 +210,101 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       console.warn('Error in restartAllAnimations:', error);
     }
+  }
+  
+  // Helper function to synchronize an element with wave effects
+  function synchronizeElement(element, timestamp, initialColor) {
+    if (!element) return;
+    
+    const chars = element.querySelectorAll('.chroma-char');
+    if (chars.length > 0) {
+      // For each character in the wave effect
+      chars.forEach((char, index) => {
+        // For each character, calculate its exact position in the animation cycle
+        const charColor = getColorForIndex(index, timestamp);
+        
+        // Apply the color directly to synchronize all characters
+        char.style.color = charColor;
+        
+        // Also ensure the animation-delay is properly set
+        char.style.animationDelay = `calc(var(--animation-restart) + ${index} * var(--animation-delay-factor))`;
+      });
+    }
+  }
+  
+  // Function to get color for a specific timestamp
+  function getColorForTimestamp(timestamp) {
+    // Define the color positions in the cycle (matching our keyframes)
+    const colors = [
+      '#ff0000', // Red - 0%
+      '#ff4000', // Red-Orange - 8.333%
+      '#ff8000', // Orange - 16.666%
+      '#ffff00', // Yellow - 25%
+      '#80ff00', // Yellow-Green - 33.333%
+      '#00ff00', // Green - 41.666%
+      '#00ff80', // Green-Cyan - 50%
+      '#00ffff', // Cyan - 58.333%
+      '#0080ff', // Light Blue - 66.666%
+      '#0000ff', // Blue - 75%
+      '#8000ff', // Indigo - 83.333%
+      '#ff00ff', // Magenta - 91.666%
+      '#ff0000'  // Red - 100% (same as 0% for looping)
+    ];
+    
+    // Use timestamp to determine position in animation cycle
+    // We'll use modulo to wrap around the animation duration
+    const animSpeed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--animation-speed')) || 3;
+    const cycleDuration = animSpeed * 1000; // Convert to ms
+    const cyclePosition = (timestamp % cycleDuration) / cycleDuration; // 0 to 1
+    
+    // Find the closest color
+    const position12 = cyclePosition * 12; // Scale to 0-12 range for our 12 colors
+    const lowerIndex = Math.floor(position12);
+    const upperIndex = Math.ceil(position12) % colors.length;
+    const blend = position12 - lowerIndex;
+    
+    // Simple color interpolation
+    return blend < 0.5 ? colors[lowerIndex] : colors[upperIndex];
+  }
+  
+  // Helper function to get color for a specific character index
+  function getColorForIndex(index, timestamp) {
+    // Define the color positions in the cycle (matching our keyframes)
+    const colors = [
+      '#ff0000', // Red - 0%
+      '#ff4000', // Red-Orange - 8.333%
+      '#ff8000', // Orange - 16.666%
+      '#ffff00', // Yellow - 25%
+      '#80ff00', // Yellow-Green - 33.333%
+      '#00ff00', // Green - 41.666%
+      '#00ff80', // Green-Cyan - 50%
+      '#00ffff', // Cyan - 58.333%
+      '#0080ff', // Light Blue - 66.666%
+      '#0000ff', // Blue - 75%
+      '#8000ff', // Indigo - 83.333%
+      '#ff00ff', // Magenta - 91.666%
+      '#ff0000'  // Red - 100% (same as 0% for looping)
+    ];
+    
+    // Get delay factor from CSS variable
+    const root = document.documentElement;
+    const computedStyle = getComputedStyle(root);
+    const delayFactor = parseFloat(computedStyle.getPropertyValue('--animation-delay-factor')) || 0.05;
+    
+    // If timestamp is provided, use it to determine base position in cycle
+    const basePosition = timestamp ? ((timestamp % 1000) / 1000) : 0;
+    
+    // Calculate position in the animation based on index and base position
+    const position = (basePosition + index * delayFactor) % 1; // Normalize to 0-1 range
+    
+    // Find the closest color based on position in animation cycle
+    const position12 = position * 12; // Scale to 0-12 range for our 12 colors
+    const lowerIndex = Math.floor(position12);
+    const upperIndex = Math.ceil(position12) % colors.length;
+    const blend = position12 - lowerIndex;
+    
+    // Simple color interpolation
+    return blend < 0.5 ? colors[lowerIndex] : colors[upperIndex];
   }
   
   // Function to apply animation speed based on settings
@@ -322,45 +441,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Set up event listeners for settings changes
-  function setupEventListeners(settings) {
-    // Helper function to handle the effect state transitions
-    function handleEffectToggle(settings) {
-      // Rotate through the three states: WAVE -> FAST -> STATIC -> WAVE
+  // Update the handleEffectToggle function to always restart animations
+  function handleEffectToggle(settings) {
+    try {
+      // Update settings based on current state
       if (settings.waveEffect) {
-        if (!settings.fastMode) {
-          // Change from WAVE to FAST (still wave effect, but with fast speed)
-          settings.fastMode = true;
-          // Keep waveEffect as true
-        } else {
-          // Change from FAST to STATIC
+        // Currently in WAVE mode, toggle to FAST mode
+        if (settings.fastMode) {
+          // Currently in FAST mode, toggle to STATIC mode
           settings.waveEffect = false;
           settings.fastMode = false;
+        } else {
+          // Currently in WAVE mode, toggle to FAST mode
+          settings.fastMode = true;
         }
       } else {
-        // Change from STATIC to WAVE
+        // Currently in STATIC mode, toggle to WAVE mode
         settings.waveEffect = true;
         settings.fastMode = false;
       }
+
+      // Update UI based on new settings
+      updateUI(settings);
       
-      // Update flags for immediate response
-      isWaveEffect = settings.waveEffect;
-      isFastMode = settings.fastMode;
-      
-      // Update UI immediately
-      updateEffectIndicator(settings);
-      
-      // If wave effect is enabled, restart animations
-      if (settings.waveEffect) {
-        // Apply animation speed based on fast mode setting
-        const animSpeed = settings.fastMode ? 'fast' : 'medium';
-        applyAnimationSpeed(animSpeed);
-        
-        restartAllAnimations();
-      }
-      
-      // Save settings
-      saveSettings(settings);
+      // Always restart animations when effect changes to ensure synchronization
+      restartAllAnimations();
       
       // Send message to background script to update content scripts
       chrome.runtime.sendMessage({
@@ -369,372 +474,187 @@ document.addEventListener('DOMContentLoaded', function() {
         staticColor: settings.staticColor,
         fastMode: settings.fastMode
       });
-      
+
       // Mark for refresh to ensure content scripts are updated
       refreshNeeded = true;
       showRefreshNotification();
+      
+      // Save the settings
+      saveSettings(settings);
+    } catch (error) {
+      console.error('Error toggling effect state:', error);
     }
-    
-    // Helper function to handle ON/OFF toggle
-    function handleOnOffToggle(settings) {
+  }
+  
+  // Helper function to handle ON/OFF toggle
+  function handleOnOffToggle(settings) {
+    try {
       console.log('ON/OFF button clicked, current state:', settings.extensionActive);
       
       // Toggle extension active state
       settings.extensionActive = !settings.extensionActive;
       isExtensionActive = settings.extensionActive;
       
-      // Update the UI immediately for responsive feel
-      if (settings.extensionActive) {
-        // ON state
-        statusIndicator.innerHTML = '<span>ON</span>';
-        statusIndicator.classList.remove('inactive');
-        statusIndicator.classList.add('active');
-        statusIndicator.style.backgroundColor = 'rgba(0, 204, 0, 0.2)';
-        statusIndicator.style.color = '#00cc00';
-        statusIndicator.style.borderColor = '#00cc00';
-        
-        // COMPLETE RESET: Remove greyed-out styling from all UI elements
-        
-        // Reset effect indicator
-        effectIndicator.classList.remove('greyed-out');
-        effectIndicator.style.opacity = '';
-        effectIndicator.style.filter = '';
-        effectIndicator.style.animation = '';
-        effectIndicator.style.backgroundColor = '';
-        effectIndicator.style.color = '';
-        effectIndicator.style.borderColor = '';
-        
-        // Reset title
-        titleText.classList.remove('greyed-out');
-        titleText.style.opacity = '';
-        titleText.style.filter = '';
-        
-        // Reset all spans in title
-        titleText.querySelectorAll('.chroma-char, .static-char').forEach(span => {
-          span.classList.remove('greyed-out');
-          span.style.animation = '';
-          span.style.opacity = '';
-          span.style.filter = '';
-          span.style.color = '';
-        });
-        
-        // Reset ALL site buttons, not just active ones
-        document.querySelectorAll('.site-button').forEach(btn => {
-          btn.classList.remove('greyed-out');
-          btn.style.opacity = '';
-          btn.style.filter = '';
-        });
-        
-        // Reset active site button specifically
-        document.querySelectorAll('.site-button.active').forEach(btn => {
-          btn.classList.remove('greyed-out');
-          btn.style.opacity = '';
-          btn.style.filter = '';
-          btn.style.animation = settings.waveEffect ? '' : 'none';
-          
-          // Restore proper colors for static mode
-          if (!settings.waveEffect) {
-            btn.style.backgroundColor = hexToRgba(settings.staticColor, 0.2);
-            btn.style.borderColor = settings.staticColor;
-          }
-        });
-        
-        // Reset ALL speed options and their wrappers
-        document.querySelectorAll('.speed-option').forEach(option => {
-          option.classList.remove('greyed-out');
-          option.style.opacity = '';
-          option.style.filter = '';
-          option.style.animation = '';
-          option.style.backgroundColor = '';
-          option.style.color = '';
-          option.style.borderColor = '';
-        });
-        
-        document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
-          wrapper.classList.remove('greyed-out');
-          wrapper.style.opacity = '';
-          wrapper.style.filter = '';
-        });
-        
-        // Reset all history items
-        document.querySelectorAll('#recent-addresses-list .chroma-char').forEach(span => {
-          span.classList.remove('greyed-out');
-          span.style.animation = '';
-          span.style.opacity = '';
-          span.style.filter = '';
-          span.style.color = '';
-        });
-        
-        // Reset token names
-        document.querySelectorAll('.token-name').forEach(tokenName => {
-          tokenName.classList.remove('greyed-out');
-          tokenName.style.opacity = '';
-          tokenName.style.filter = '';
-          if (!settings.waveEffect) {
-            tokenName.style.color = settings.staticColor;
-          } else {
-            tokenName.style.color = '';
-          }
-        });
-        
-        document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
-          span.classList.remove('greyed-out');
-          span.style.animation = '';
-          span.style.opacity = '';
-          span.style.filter = '';
-          span.style.color = '';
-        });
-        
-        // Reset containers
-        document.getElementById('color-picker-container').classList.remove('greyed-out');
-        document.getElementById('color-picker-container').style.opacity = '';
-        document.getElementById('color-picker-container').style.filter = '';
-        
-        document.getElementById('speed-selector-container').classList.remove('greyed-out');
-        document.getElementById('speed-selector-container').style.opacity = '';
-        document.getElementById('speed-selector-container').style.filter = '';
-        
-        document.querySelectorAll('.site-button-group').forEach(group => {
-          group.classList.remove('greyed-out');
-          group.style.opacity = '';
-          group.style.filter = '';
-        });
-        
-        document.querySelector('.recent-section').classList.remove('greyed-out');
-        document.querySelector('.recent-section').style.opacity = '';
-        document.querySelector('.recent-section').style.filter = '';
-        
-        // Force redraw of all speed buttons to ensure they're properly rendered
-        document.querySelectorAll('.speed-option').forEach(option => {
-          // This forces a browser reflow/repaint
-          void option.offsetWidth;
-        });
-        
-        // Re-apply effect styles based on current mode
-        updateEffectIndicator(settings);
-        
-        // If wave effect is enabled, restart animations for sync
-        if (settings.waveEffect) {
-          restartAllAnimations();
-        }
-      } else {
-        // OFF state
-        statusIndicator.innerHTML = '<span>OFF</span>';
-        statusIndicator.classList.remove('active');
-        statusIndicator.classList.add('inactive');
-        statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
-        statusIndicator.style.color = '#ff0000';
-        statusIndicator.style.borderColor = '#ff0000';
-        
-        // Apply greyed-out styling for immediate feedback
-        effectIndicator.classList.add('greyed-out');
-        // Also set direct styles
-        effectIndicator.style.opacity = '0.4';
-        effectIndicator.style.filter = 'grayscale(70%)';
-        
-        // For WAVE button, we need to ensure the animation is disabled
-        if (effectIndicator.classList.contains('wave-active')) {
-          effectIndicator.style.animation = 'none';
-          effectIndicator.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-          effectIndicator.style.color = '#888';
-          effectIndicator.style.borderColor = '#888';
-        }
-        
-        // Apply greyed-out to title
-        titleText.classList.add('greyed-out');
-        titleText.style.opacity = '0.4';
-        titleText.style.filter = 'grayscale(70%)';
-        
-        // If title has wave spans, disable their animations too
-        const spans = titleText.querySelectorAll('.chroma-char, .static-char');
-        spans.forEach(span => {
-          span.style.animation = 'none';
-          span.style.opacity = '0.4';
-          span.style.filter = 'grayscale(70%)';
-          span.style.color = '#888'; // Grey color
-        });
-        
-        // Disable animations on active site buttons
-        document.querySelectorAll('.site-button.active').forEach(btn => {
-          btn.classList.add('greyed-out');
-          btn.style.opacity = '0.4';
-          btn.style.filter = 'grayscale(70%)';
-          btn.style.animation = 'none';
-          btn.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-          btn.style.borderColor = '#888';
-        });
-        
-        // Disable animations on ALL speed options
-        document.querySelectorAll('.speed-option').forEach(option => {
-          option.classList.add('greyed-out');
-          option.style.opacity = '0.4';
-          option.style.filter = 'grayscale(70%)';
-          option.style.animation = 'none';
-          option.style.backgroundColor = 'rgba(128, 128, 128, 0.2)';
-          option.style.color = '#888';
-          option.style.borderColor = '#888';
-        });
-        
-        // Also grey out the speed button wrappers
-        document.querySelectorAll('.speed-selector .button-wrapper').forEach(wrapper => {
-          wrapper.classList.add('greyed-out');
-          wrapper.style.opacity = '0.4';
-          wrapper.style.filter = 'grayscale(70%)';
-        });
-        
-        // Disable animations in history section
-        document.querySelectorAll('#recent-addresses-list .chroma-char').forEach(span => {
-          span.classList.add('greyed-out');
-          span.style.animation = 'none';
-          span.style.opacity = '0.4';
-          span.style.filter = 'grayscale(70%)';
-          span.style.color = '#888';
-        });
-        
-        // Disable animations for token names
-        document.querySelectorAll('.token-name.chroma-wave .chroma-char').forEach(span => {
-          span.classList.add('greyed-out');
-          span.style.animation = 'none';
-          span.style.opacity = '0.4';
-          span.style.filter = 'grayscale(70%)';
-          span.style.color = '#888';
-        });
-        
-        document.getElementById('color-picker-container').classList.add('greyed-out');
-        document.getElementById('speed-selector-container').classList.add('greyed-out');
-        document.querySelectorAll('.site-button-group').forEach(group => {
-          group.classList.add('greyed-out');
-        });
-        document.querySelector('.recent-section').classList.add('greyed-out');
+      // Update UI based on new settings
+      updateUI(settings);
+      
+      // If turning on and wave effect is enabled, restart animations for sync
+      if (settings.extensionActive && settings.waveEffect) {
+        restartAllAnimations();
       }
       
-      // Save settings and update UI properly
+      // Save the settings
       saveSettings(settings);
+    } catch (error) {
+      console.error('Error toggling ON/OFF state:', error);
     }
-    
-    // Effect indicator click handler (WAVE/FAST/STATIC toggle)
-    const effectWrapper = document.querySelector('.toggle-container:first-child .button-wrapper');
-    const effectIndicatorElement = document.getElementById('effect-indicator');
-    
-    // Direct click handler for the effect indicator (higher priority)
-    if (effectIndicatorElement) {
-      effectIndicatorElement.addEventListener('click', function(event) {
-        // Only allow clicking if extension is active
-        if (!isExtensionActive) return;
-        
-        // Prevent event bubbling to avoid triggering the wrapper's handler too
-        event.stopPropagation();
-        
-        // Handle the state transition
-        handleEffectToggle(settings);
-      });
+  }
+  
+  // Update the handleSpeedChange function to properly restart animations
+  function handleSpeedChange(speed, settings) {
+    try {
+      // Update animation speed
+      settings.animationSpeed = speed;
+      applyAnimationSpeed(speed);
+      
+      // Always restart animations when speed changes to ensure synchronization
+      restartAllAnimations();
+      
+      // Save new settings
+      saveSettings(settings);
+    } catch (error) {
+      console.error('Error changing animation speed:', error);
     }
-    
-    // Wrapper click handler (lower priority, backup)
-    if (effectWrapper) {
-      effectWrapper.addEventListener('click', function(event) {
-        // Only allow clicking if extension is active and the click is on the wrapper (not the button)
-        if (!isExtensionActive) return;
-        
-        // Only trigger if the click was directly on the wrapper (not bubbled up)
-        if (event.target === this) {
+  }
+  
+  // Function to set up event listeners for settings changes
+  function setupEventListeners(settings) {
+    try {
+      // Setup effect toggle (WAVE/FAST/STATIC)
+      const effectIndicator = document.getElementById('effect-indicator');
+      const effectWrapper = document.querySelector('#effect-indicator-wrapper');
+      
+      if (effectWrapper) {
+        effectWrapper.addEventListener('click', function(event) {
           handleEffectToggle(settings);
-        }
-      });
-    }
-    
-    // Find the ON/OFF button wrapper more reliably
-    const statusWrapper = document.querySelector('.toggle-container:nth-child(2) .button-wrapper');
-    const statusIndicatorElement = document.getElementById('status-indicator');
-    
-    // Direct click handler for the status indicator (higher priority)
-    if (statusIndicatorElement) {
-      statusIndicatorElement.addEventListener('click', function(event) {
-        // Prevent event bubbling to avoid triggering the wrapper's handler too
-        event.stopPropagation();
-        
-        // Handle the state transition
-        handleOnOffToggle(settings);
-      });
-    }
-    
-    // Wrapper click handler (lower priority, backup)
-    if (statusWrapper) {
-      statusWrapper.addEventListener('click', function(event) {
-        // Only trigger if the click was directly on the wrapper (not bubbled up)
-        if (event.target === this) {
-          handleOnOffToggle(settings);
-        }
-      });
-    } else {
-      console.error('Could not find ON/OFF button wrapper');
-    }
-    
-    // Static color picker
-    staticColorPicker.addEventListener('input', function() {
-      const newColor = this.value;
-      settings.staticColor = newColor;
-      
-      // Only update if in static mode
-      if (!settings.waveEffect) {
-        // Apply direct color changes to all necessary elements
-        
-        // Update STATIC button directly
-        const effectBtn = document.getElementById('effect-indicator');
-        if (effectBtn) {
-          effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
-          effectBtn.style.color = newColor;
-          effectBtn.style.borderColor = newColor;
-        }
-        
-        // Update title text spans
-        const titleEl = document.getElementById('title-text');
-        if (titleEl) {
-          // First, ensure title has the correct structure for static mode
-          if (!titleEl.querySelector('.static-char')) {
-            // Rebuild the title with static spans if needed
-            titleEl.innerHTML = '';
-            const titleText = 'Can Opener';
-            [...titleText].forEach(char => {
-              const span = document.createElement('span');
-              span.textContent = char;
-              span.className = char === ' ' ? 'static-char space-char' : 'static-char';
-              span.style.color = newColor;
-              titleEl.appendChild(span);
-            });
-          } else {
-            // Update existing static spans
-            titleEl.querySelectorAll('.static-char').forEach(span => {
-              span.style.color = newColor;
-            });
-          }
-        }
-        
-        // Update site buttons
-        document.querySelectorAll('.site-button.active').forEach(btn => {
-          btn.style.backgroundColor = hexToRgba(newColor, 0.2);
-          btn.style.borderColor = newColor;
-        });
-        
-        // Update token names
-        document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
-          tokenName.style.color = newColor;
-        });
-        
-        document.querySelectorAll('.token-name .static-char').forEach(span => {
-          span.style.color = newColor;
+          event.stopPropagation(); // Prevent bubbling
         });
       }
       
-      // Save the new settings
-      saveSettings(settings);
-    });
-    
-    // Trading site selector
-    tradingSiteSelect.addEventListener('change', function() {
-      settings.tradingSite = this.value;
-      saveSettings(settings);
-    });
+      if (effectIndicator) {
+        effectIndicator.addEventListener('click', function(event) {
+          handleEffectToggle(settings);
+          event.stopPropagation(); // Prevent bubbling
+        });
+      }
+      
+      // Setup on/off toggle
+      const statusIndicator = document.getElementById('status-indicator');
+      const statusWrapper = document.querySelector('#status-indicator-wrapper');
+      
+      if (statusWrapper) {
+        statusWrapper.addEventListener('click', function(event) {
+          handleOnOffToggle(settings);
+          event.stopPropagation(); // Prevent bubbling
+        });
+      }
+      
+      if (statusIndicator) {
+        statusIndicator.addEventListener('click', function(event) {
+          handleOnOffToggle(settings);
+          event.stopPropagation(); // Prevent bubbling
+        });
+      }
+
+      // Setup speed option buttons if they exist (for backward compatibility)
+      document.querySelectorAll('.speed-option-wrapper').forEach(wrapper => {
+        wrapper.addEventListener('click', function(event) {
+          const speedOption = this.querySelector('.speed-option');
+          if (speedOption) {
+            const speed = parseInt(speedOption.getAttribute('data-speed'));
+            if (!isNaN(speed)) {
+              // Set active class on clicked option only
+              document.querySelectorAll('.speed-option').forEach(option => {
+                option.classList.remove('active');
+              });
+              speedOption.classList.add('active');
+              
+              // Update speed and restart animations
+              handleSpeedChange(speed, settings);
+            }
+          }
+          event.stopPropagation(); // Prevent bubbling
+        });
+      });
+      
+      // Static color picker
+      staticColorPicker.addEventListener('input', function() {
+        const newColor = this.value;
+        settings.staticColor = newColor;
+        
+        // Only update if in static mode
+        if (!settings.waveEffect) {
+          // Apply direct color changes to all necessary elements
+          
+          // Update STATIC button directly
+          const effectBtn = document.getElementById('effect-indicator');
+          if (effectBtn) {
+            effectBtn.style.backgroundColor = hexToRgba(newColor, 0.2);
+            effectBtn.style.color = newColor;
+            effectBtn.style.borderColor = newColor;
+          }
+          
+          // Update title text spans
+          const titleEl = document.getElementById('title-text');
+          if (titleEl) {
+            // First, ensure title has the correct structure for static mode
+            if (!titleEl.querySelector('.static-char')) {
+              // Rebuild the title with static spans if needed
+              titleEl.innerHTML = '';
+              const titleText = 'Can Opener';
+              [...titleText].forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.className = char === ' ' ? 'static-char space-char' : 'static-char';
+                span.style.color = newColor;
+                titleEl.appendChild(span);
+              });
+            } else {
+              // Update existing static spans
+              titleEl.querySelectorAll('.static-char').forEach(span => {
+                span.style.color = newColor;
+              });
+            }
+          }
+          
+          // Update site buttons
+          document.querySelectorAll('.site-button.active').forEach(btn => {
+            btn.style.backgroundColor = hexToRgba(newColor, 0.2);
+            btn.style.borderColor = newColor;
+          });
+          
+          // Update token names
+          document.querySelectorAll('.token-name:not(.chroma-wave)').forEach(tokenName => {
+            tokenName.style.color = newColor;
+          });
+          
+          document.querySelectorAll('.token-name .static-char').forEach(span => {
+            span.style.color = newColor;
+          });
+        }
+        
+        // Save the new settings
+        saveSettings(settings);
+      });
+      
+      // Trading site selector
+      tradingSiteSelect.addEventListener('change', function() {
+        settings.tradingSite = this.value;
+        saveSettings(settings);
+      });
+    } catch (error) {
+      console.error('Error setting up event listeners:', error);
+    }
   }
   
   // Function to update token names in the history section with current settings
@@ -900,43 +820,6 @@ document.addEventListener('DOMContentLoaded', function() {
         titleElement.style.filter = 'grayscale(70%)';
       }
     }
-  }
-  
-  // Helper function to get color for a specific character index
-  function getColorForIndex(index) {
-    // Define the color positions in the cycle (matching our keyframes)
-    const colors = [
-      '#ff0000', // Red - 0%
-      '#ff4000', // Red-Orange - 8.333%
-      '#ff8000', // Orange - 16.666%
-      '#ffff00', // Yellow - 25%
-      '#80ff00', // Yellow-Green - 33.333%
-      '#00ff00', // Green - 41.666%
-      '#00ff80', // Green-Cyan - 50%
-      '#00ffff', // Cyan - 58.333%
-      '#0080ff', // Light Blue - 66.666%
-      '#0000ff', // Blue - 75%
-      '#8000ff', // Indigo - 83.333%
-      '#ff00ff', // Magenta - 91.666%
-      '#ff0000'  // Red - 100% (same as 0% for looping)
-    ];
-    
-    // Get delay factor from CSS variable
-    const root = document.documentElement;
-    const computedStyle = getComputedStyle(root);
-    const delayFactor = parseFloat(computedStyle.getPropertyValue('--animation-delay-factor')) || 0.05;
-    
-    // Calculate position in the animation based on index
-    const position = (index * delayFactor) % 1; // Normalize to 0-1 range
-    
-    // Find the closest color based on position in animation cycle
-    const position12 = position * 12; // Scale to 0-12 range for our 12 colors
-    const lowerIndex = Math.floor(position12);
-    const upperIndex = Math.ceil(position12) % colors.length;
-    const blend = position12 - lowerIndex;
-    
-    // Simple color interpolation
-    return blend < 0.5 ? colors[lowerIndex] : colors[upperIndex];
   }
   
   // Helper function to convert hex color to rgba
