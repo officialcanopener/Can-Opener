@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the UI immediately for responsive feel
         if (settings.extensionActive) {
           // ON state
-          statusIndicator.textContent = 'ON';
+          statusIndicator.innerHTML = '<span>ON</span>';
           statusIndicator.classList.remove('inactive');
           statusIndicator.classList.add('active');
           statusIndicator.style.backgroundColor = 'rgba(0, 204, 0, 0.2)';
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         } else {
           // OFF state
-          statusIndicator.textContent = 'OFF';
+          statusIndicator.innerHTML = '<span>OFF</span>';
           statusIndicator.classList.remove('active');
           statusIndicator.classList.add('inactive');
           statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
@@ -721,10 +721,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (settings.waveEffect) {
       // Check for fast mode and update text accordingly
       if (settings.fastMode) {
-        effectIndicator.textContent = 'FAST';
+        effectIndicator.innerHTML = '<span>FAST</span>';
         effectIndicator.className = 'status-indicator wave-active fast-mode';
       } else {
-        effectIndicator.textContent = 'WAVE';
+        effectIndicator.innerHTML = '<span>WAVE</span>';
         effectIndicator.className = 'status-indicator wave-active';
       }
       
@@ -763,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     } else {
-      effectIndicator.textContent = 'STATIC';
+      effectIndicator.innerHTML = '<span>STATIC</span>';
       effectIndicator.className = 'status-indicator static-active';
       
       // Make sure the colors are applied consistently and forcefully
@@ -1113,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update status indicator and banner
     if (settings.extensionActive) {
       // Update status indicator
-      statusIndicator.textContent = 'ON';
+      statusIndicator.innerHTML = '<span>ON</span>';
       statusIndicator.classList.remove('inactive');
       statusIndicator.classList.add('active');
       
@@ -1266,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } else {
       // OFF state
-      statusIndicator.textContent = 'OFF';
+      statusIndicator.innerHTML = '<span>OFF</span>';
       statusIndicator.classList.remove('active');
       statusIndicator.classList.add('inactive');
       
