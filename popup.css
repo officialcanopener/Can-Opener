@@ -65,6 +65,16 @@ body {
   transition: all 0.2s ease;
 }
 
+/* Regular refresh notification hover effects */
+.status-banner.refresh-required:hover {
+  filter: none; /* Remove brightness filter to keep original color */
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.3); /* Add subtle glow instead of scale */
+}
+
+.status-banner.refresh-required:active {
+  box-shadow: 0 0 4px rgba(255, 165, 0, 0.2); /* Subtle pressed effect */
+}
+
 /* Special styling for Discord refresh notification */
 .status-banner.refresh-required.discord-refresh {
   cursor: pointer !important; /* Make it clickable */
@@ -73,21 +83,11 @@ body {
 
 .status-banner.refresh-required.discord-refresh:hover {
   filter: none; /* Remove brightness filter to keep original color */
-  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.3); /* Add subtle glow instead of scale */
 }
 
 .status-banner.refresh-required.discord-refresh:active {
-  transform: scale(0.98);
-}
-
-/* Regular refresh notification hover effects */
-.status-banner.refresh-required:hover {
-  filter: none; /* Remove brightness filter to keep original color */
-  transform: scale(1.02);
-}
-
-.status-banner.refresh-required:active {
-  transform: scale(0.98);
+  box-shadow: 0 0 4px rgba(255, 165, 0, 0.2); /* Subtle pressed effect */
 }
 
 .status-banner.inactive {
@@ -605,15 +605,16 @@ h2 {
   transition: background-color 0.2s;
   position: relative;
   cursor: pointer !important;
+  transition: all 0.15s ease-out;
 }
 
 .address-item:hover {
   filter: brightness(1.2);
-  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
 }
 
 .address-item:active {
-  transform: scale(0.98);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
 }
 
 .address-link {
@@ -742,12 +743,14 @@ h2 {
 
 .button-wrapper:hover {
   filter: brightness(1.25);
-  transform: scale(1.05);
+  /* Replace scale with box-shadow to prevent cursor teleporting */
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .button-wrapper:active {
-  transform: scale(0.95);
-  transition: transform 0.08s ease-out; /* Even faster for active state */
+  /* Replace transform with subtle box-shadow change */
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  transition: all 0.08s ease-out; /* Even faster for active state */
 }
 
 /* Add specific styles for speed button wrappers */
@@ -763,29 +766,14 @@ h2 {
 
 .speed-selector .button-wrapper:hover {
   filter: brightness(1.25);
-  transform: scale(1.05);
+  /* Replace scale with box-shadow to prevent cursor teleporting */
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .speed-selector .button-wrapper:active {
-  transform: scale(0.95);
-  transition: transform 0.08s ease-out; /* Faster for active state */
-}
-
-/* Ensure the entire container maintains pointer behavior */
-.speed-selector {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  cursor: default; /* Set default cursor */
-  position: relative; /* Create stacking context */
-  z-index: 1; /* Lower than button wrappers */
-  padding: 2px; /* Small padding to avoid edge issues */
-}
-
-/* Override container settings within buttons */
-.toggle-container, .site-buttons-container {
-  position: relative;
-  z-index: 1;
+  /* Replace transform with subtle box-shadow change */
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  transition: all 0.08s ease-out; /* Faster for active state */
 }
 
 /* Improve site button wrappers with additional fixes */
@@ -801,16 +789,20 @@ h2 {
 
 .site-button-group .button-wrapper:hover {
   filter: brightness(1.25);
+  /* Add box-shadow instead of transform */
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .site-button-group .button-wrapper:hover .site-button-logo {
+  /* Keep the logo enlargement since it's inside the wrapper */
   transform: scale(1.15);
   transition: transform 0.1s ease-out; /* Match the snappier transition */
 }
 
 .site-button-group .button-wrapper:active {
-  transform: scale(0.95);
-  transition: transform 0.08s ease-out; /* Even faster for active state */
+  /* Replace transform with subtle box-shadow change */
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+  transition: all 0.08s ease-out; /* Even faster for active state */
 }
 
 /* Override site button hover effects since they're now handled by the wrapper */
@@ -834,11 +826,11 @@ h2 {
 
 .address-item:hover {
   filter: brightness(1.2);
-  transform: scale(1.02);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
 }
 
 .address-item:active {
-  transform: scale(0.98);
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
 }
 
 .address-link {
@@ -851,6 +843,10 @@ h2 {
   display: flex;
   gap: 4px;
   align-items: center;
+  cursor: default; /* Set default cursor */
+  position: relative; /* Create stacking context */
+  z-index: 1; /* Lower than button wrappers */
+  padding: 2px; /* Small padding to avoid edge issues */
 }
 
 .speed-option {
@@ -1466,24 +1462,24 @@ h1#title-text.greyed-out {
 
 .tip-dev-button:hover {
   background-color: #444;
-  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
   filter: brightness(1.25);
 }
 
 .tip-dev-button:active {
-  transform: scale(0.95);
-  transition: transform 0.08s ease-out; /* Even faster for active state */
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
+  transition: all 0.08s ease-out; /* Even faster for active state */
 }
 
 .website-button:hover {
   background-color: #444;
-  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Add subtle glow instead of scale */
   filter: brightness(1.25);
 }
 
 .website-button:active {
-  transform: scale(0.95);
-  transition: transform 0.08s ease-out; /* Even faster for active state */
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.1); /* Subtle pressed effect */
+  transition: all 0.08s ease-out; /* Even faster for active state */
 }
 
 /* Styling for the Discord note text */
@@ -1507,4 +1503,10 @@ h1#title-text.greyed-out {
 .tip-dev-button {
   min-width: 70px;
   text-align: center;
+}
+
+/* Override container settings within buttons */
+.toggle-container, .site-buttons-container {
+  position: relative;
+  z-index: 1;
 } 
