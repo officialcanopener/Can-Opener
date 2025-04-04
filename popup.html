@@ -24,28 +24,39 @@
     
     <div class="settings-section">
       <div class="setting-row">
-        <div class="toggle-container">
+        <div class="toggle-container effect-toggle">
+          <div class="toggle-label">Effect:</div>
+          <div class="button-wrapper">
+            <div class="toggle-switch">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </div>
+            <div class="status-indicator" data-text="WAVE">
+              <span>WAVE</span>
+            </div>
+          </div>
+        </div>
+        <div class="toggle-container color-picker-container" style="margin-left: 15px;">
+          <div class="toggle-label">Color:</div>
           <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
-            <div id="effect-indicator" class="status-indicator active clickable">WAVE</div>
+            <div id="color-picker-indicator" class="status-indicator active clickable" data-text="COLOR">
+              <span>COLOR</span>
+            </div>
           </div>
           <div id="color-picker-container" class="color-picker-container" style="display: none; margin-left: 10px;">
             <input type="color" id="static-color" value="#8C00FF">
           </div>
-          <div id="speed-selector-container" class="speed-selector" style="margin-left: 10px;">
-            <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
-              <div class="speed-option" data-speed="slow">1</div>
-            </div>
-            <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
-              <div class="speed-option active" data-speed="medium">2</div>
-            </div>
-            <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
-              <div class="speed-option" data-speed="fast">3</div>
-            </div>
-          </div>
         </div>
-        <div class="toggle-container" style="margin-left: 15px;">
-          <div class="button-wrapper" style="cursor: pointer !important; position: relative;">
-            <div id="status-indicator" class="status-indicator active clickable">ON</div>
+        <div class="toggle-container status-toggle" style="margin-left: 15px;">
+          <div class="toggle-label">Status:</div>
+          <div class="button-wrapper">
+            <div class="toggle-switch">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </div>
+            <div id="status-indicator" class="status-indicator active" data-text="ON">
+              <span>ON</span>
+            </div>
           </div>
         </div>
       </div>
