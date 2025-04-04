@@ -192,11 +192,49 @@ h1.wave-text {
   font-weight: 600;
   text-transform: uppercase;
   margin: 0 8px;
-  transition: all 0.2s ease;
+  transition: all 0.1s ease-out;
   border: 2px solid transparent;
   min-width: 58px;
   text-align: center;
   position: relative; /* Add positioning context */
+  background-color: rgba(80, 80, 80, 0.4);
+  color: white;
+}
+
+/* Style for span inside status indicator */
+.status-indicator span {
+  transition: transform 0.1s ease-out;
+}
+
+/* Hover effect for the text inside status indicators */
+.toggle-container:hover .status-indicator span {
+  transform: scale(1.05);
+}
+
+.toggle-container:hover .status-indicator {
+  filter: brightness(1.1);
+  border-color: transparent;
+}
+
+/* Status indicator when active and hovered */
+.toggle-container:hover .status-indicator.wave-active span,
+.toggle-container:hover .status-indicator.power-on span {
+  transform: scale(1.05);
+}
+
+/* Keep existing styles for active indicators */
+.status-indicator.wave-active {
+  animation: rainbow-border 3s linear infinite;
+  background-color: #2a2a2a;
+  border-color: #ff00ff;
+  -webkit-font-smoothing: antialiased;
+  backface-visibility: hidden;
+  will-change: border-color;
+}
+
+.status-indicator.power-on {
+  background-color: #2a2a2a;
+  border-color: #00ff00;
 }
 
 /* Make status indicators clickable */
@@ -865,47 +903,65 @@ h2 {
   border-radius: 8px;
   font-size: 14px;
   background-color: #2a2a2a;
-  transition: all 0.15s ease; /* Faster transition for snappier feel */
+  transition: all 0.15s ease;
   width: 24px;
   text-align: center;
   border: 2px solid transparent;
   user-select: none;
-  pointer-events: none; /* Keep this to ensure the wrapper handles events */
+  pointer-events: none;
+  position: relative; /* Add positioning context */
+  overflow: visible; /* Allow content to overflow if needed */
 }
 
-/* Remove hover/active effects from the speed-option itself */
-.speed-option:hover {
-  filter: none;
-  transform: none;
+/* Target the text inside speed options directly */
+.speed-selector .button-wrapper:hover .speed-option:not(.active) span {
+  transform: scale(1.05);
+  display: inline-block;
+  transition: transform 0.1s ease-out;
 }
 
-.speed-option:active {
-  transform: none;
+/* Add styles for hovering over non-active speed options */
+.speed-selector .button-wrapper:hover .speed-option:not(.active) {
+  background-color: rgba(80, 80, 80, 0.4);
+  border-color: transparent;
+  filter: brightness(1.1);
 }
 
-/* Update active speed option to remove hover/active effects */
-.speed-option.active {
-  background-color: #2a2a2a;
-  animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
-  animation-delay: var(--animation-restart);
-  border: 2px solid #ff00ff;
-  
-  /* GPU acceleration for smoother animation */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  will-change: background-color, color, border-color;
+/* Fix ON/OFF and WAVE/STATIC buttons (status indicators) */
+/* Remove scaling from the button itself */
+.button-wrapper:hover .status-indicator {
+  /* Remove transform from here */
+  transition: none; /* Remove transition */
 }
 
-/* Remove hover/active effects from active speed option */
-.speed-option.active:hover {
-  filter: none;
-  transform: none;
+/* Add text scaling for status indicators */
+.button-wrapper:hover .status-indicator > span {
+  transform: scale(1.05);
+  display: inline-block;
+  transition: transform 0.1s ease-out;
 }
 
-.speed-option.active:active {
-  transform: none;
+/* Make sure active wave indicator maintains its animation but scale only text */
+.button-wrapper:hover .status-indicator.wave-active {
+  /* Remove transform from here */
+  transition: none; /* Remove transition */
+}
+
+/* Scale text inside wave active indicator */
+.button-wrapper:hover .status-indicator.wave-active > span {
+  transform: scale(1.05);
+  display: inline-block;
+  transition: transform 0.1s ease-out;
+}
+
+/* Add transition properties to elements that will be scaled */
+#status-message, 
+.tip-dev-button span, 
+.website-button span,
+.status-indicator span,
+.speed-option span {
+  transition: transform 0.1s ease-out;
+  display: inline-block;
 }
 
 /* Helper class for animation restart */
@@ -1524,59 +1580,21 @@ h1#title-text.greyed-out {
   transition: transform 0.1s ease-out;
 }
 
-/* Status indicators (ON/OFF and WAVE/STATIC) - Fix to scale only text */
+/* Status indicators (ON/OFF and WAVE/STATIC) */
 .button-wrapper:hover .status-indicator {
-  transform: none; /* Don't scale the entire button */
+  transition: none;
 }
 
-.button-wrapper:hover .status-indicator span {
-  display: inline-block;
-  transform: scale(1.1); /* Slightly larger text scale for better effect */
-  transition: transform 0.1s ease-out; /* Snappy transition */
-}
-
-/* Fix for WAVE active state */
+/* Make sure active wave indicator maintains its animation but scale only text */
 .button-wrapper:hover .status-indicator.wave-active {
-  transform: none; /* Keep button size static */
+  transition: none;
 }
 
-.button-wrapper:hover .status-indicator.wave-active span {
+/* Scale text inside wave active indicator */
+.button-wrapper:hover .status-indicator.wave-active > span {
+  transform: scale(1.05);
   display: inline-block;
-  transform: scale(1.1);
   transition: transform 0.1s ease-out;
-  /* Animation still applies to the entire button */
-}
-
-/* Speed option numbers - Fix to scale only the number text */
-.speed-selector .button-wrapper:hover .speed-option:not(.active) {
-  background-color: rgba(80, 80, 80, 0.4);
-  border-color: transparent;
-  filter: brightness(1.1);
-  transform: none; /* Don't scale the entire button */
-}
-
-.speed-selector .button-wrapper:hover .speed-option:not(.active) span {
-  display: inline-block;
-  transform: scale(1.1);
-  transition: transform 0.1s ease-out;
-}
-
-/* Make active speed options span scale but keep button size fixed */
-.speed-selector .button-wrapper:hover .speed-option.active {
-  transform: none; /* Don't scale the entire button */
-}
-
-.speed-selector .button-wrapper:hover .speed-option.active span {
-  display: inline-block;
-  transform: scale(1.1);
-  transition: transform 0.1s ease-out;
-}
-
-/* Ensure all these elements have proper transition properties */
-.status-indicator span,
-.speed-option span {
-  transition: transform 0.1s ease-out;
-  display: inline-block;
 }
 
 /* Ensure the status-indicator animation doesn't reset on hover */
@@ -1591,6 +1609,25 @@ h1#title-text.greyed-out {
   backface-visibility: hidden;
   transform: translateZ(0);
   will-change: background-color, color, border-color;
+}
+
+/* Speed option numbers */
+.speed-selector .button-wrapper:hover .speed-option:not(.active) {
+  background-color: rgba(80, 80, 80, 0.4);
+  border-color: transparent;
+  filter: brightness(1.1);
+}
+
+/* Make active speed options also scale but keep their color animation */
+.speed-selector .button-wrapper:hover .speed-option.active {
+  /* Remove transform from here so button doesn't scale */
+}
+
+/* Scale the text inside active speed options */
+.speed-selector .button-wrapper:hover .speed-option.active span {
+  transform: scale(1.05);
+  display: inline-block;
+  transition: transform 0.1s ease-out;
 }
 
 /* Ensure text in banners enlarges */
@@ -1609,7 +1646,51 @@ h1#title-text.greyed-out {
 /* Add transition properties to elements that will be scaled */
 #status-message, 
 .tip-dev-button span, 
-.website-button span {
+.website-button span,
+.status-indicator span,
+.speed-option span {
   transition: transform 0.1s ease-out;
   display: inline-block;
+}
+
+/* Update active speed option styles */
+.speed-option.active {
+  background-color: #2a2a2a;
+  animation: syncedChromaWaveBorderText var(--animation-speed) linear infinite;
+  animation-delay: var(--animation-restart);
+  border: 2px solid #ff00ff;
+  
+  /* GPU acceleration for smoother animation */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: background-color, color, border-color;
+}
+
+/* Remove hover/active effects from the speed-option itself */
+.speed-option:hover {
+  filter: none;
+  transform: none;
+}
+
+.speed-option:active {
+  transform: none;
+}
+
+/* Make active speed options text scale but keep their color animation */
+.speed-selector .button-wrapper:hover .speed-option.active span {
+  transform: scale(1.05);
+  display: inline-block;
+  transition: transform 0.1s ease-out;
+}
+
+/* Fix styles for active speed option - don't touch these */
+.speed-option.active {
+  background-color: #2a2a2a;
+  animation: rainbow-border 3s linear infinite;
+  border-color: #ff00ff;
+  -webkit-font-smoothing: antialiased;
+  backface-visibility: hidden;
+  will-change: border-color;
 } 
